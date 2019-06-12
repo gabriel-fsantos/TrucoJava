@@ -103,15 +103,15 @@ public class TrucoFrame extends javax.swing.JFrame {
         titulo.setText("TRUCO");
 
         cartaJogador2.setBackground(new java.awt.Color(255, 102, 102));
-        cartaJogador2.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        cartaJogador2.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         cartaJogador2.setOpaque(true);
 
         cartaJogador3.setBackground(new java.awt.Color(255, 102, 102));
-        cartaJogador3.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        cartaJogador3.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         cartaJogador3.setOpaque(true);
 
         cartaJogador1.setBackground(new java.awt.Color(255, 102, 102));
-        cartaJogador1.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        cartaJogador1.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         cartaJogador1.setOpaque(true);
 
         cartaAtualJogador.setBackground(new java.awt.Color(255, 102, 102));
@@ -134,7 +134,7 @@ public class TrucoFrame extends javax.swing.JFrame {
         trucoBtn.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         trucoBtn.setText("TRUCO!");
         trucoBtn.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 0, 0)));
-        trucoBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        trucoBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         trucoBtn.setOpaque(true);
 
         correrBtn.setBackground(new java.awt.Color(141, 27, 36));
@@ -143,7 +143,7 @@ public class TrucoFrame extends javax.swing.JFrame {
         correrBtn.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         correrBtn.setText("CORRER!");
         correrBtn.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 0, 0)));
-        correrBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        correrBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         correrBtn.setOpaque(true);
 
         cobertaBtn.setBackground(new java.awt.Color(141, 27, 36));
@@ -152,7 +152,7 @@ public class TrucoFrame extends javax.swing.JFrame {
         cobertaBtn.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         cobertaBtn.setText("COBERTA");
         cobertaBtn.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 0, 0)));
-        cobertaBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        cobertaBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         cobertaBtn.setOpaque(true);
         cobertaBtn.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -166,7 +166,7 @@ public class TrucoFrame extends javax.swing.JFrame {
         aceitarBtn.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         aceitarBtn.setText("ACEITAR!");
         aceitarBtn.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 0, 0)));
-        aceitarBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        aceitarBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         aceitarBtn.setOpaque(true);
 
         info.setFont(new java.awt.Font("Roboto Lt", 0, 24)); // NOI18N
