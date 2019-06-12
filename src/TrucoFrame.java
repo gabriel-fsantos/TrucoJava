@@ -1,29 +1,71 @@
-
+import java.awt.Color;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.border.LineBorder;
 
 /**
  * @author Gabriel, Lucas Rassilan, Rebeca Gaia
  */
 public class TrucoFrame extends javax.swing.JFrame {
+    public static void displayImage (String path, JLabel label) {
+        try {
+            BufferedImage img = ImageIO.read(new File(path));
+            Image dimg = img.getScaledInstance(label.getWidth(), label.getHeight(), Image.SCALE_SMOOTH);
+            ImageIcon imageIcon = new ImageIcon(dimg);
+            label.setIcon(imageIcon);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
     /**
      * Creates new form TrucoFrame
      */
     public TrucoFrame() {
         initComponents();
+        background = new JLabel();
+        background.setLocation(0, 0);
+        background.setSize(this.getWidth(), this.getHeight());
+        this.add(background);
         
-        try {
-            BufferedImage img = ImageIO.read(new File("Images\\Verso.png"));
-            Image dimg = img.getScaledInstance(carta1.getWidth(), carta1.getHeight(), Image.SCALE_SMOOTH);
-            ImageIcon imageIcon = new ImageIcon(dimg);
-            carta1.setIcon(imageIcon);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        TrucoFrame.displayImage("Images\\Background.jpg", background);
+        initializeGame();
+    }
+    
+    public void initializeGame () {
+        TrucoFrame.displayImage("Images\\Verso.png", cartaJogador1);
+        TrucoFrame.displayImage("Images\\Verso.png", cartaJogador2);
+        TrucoFrame.displayImage("Images\\Verso.png", cartaJogador3);
+        
+        hideLabel(cartaAtualCPU);
+        hideLabel(cartaAtualJogador);
+        hideLabel(info);
+        
+        // Para esconder os botões utilizamos setVisible
+        aceitarBtn.setVisible(false);
+        correrBtn.setVisible(false);
+        
+        updateScore(0, 0);
+        
+        jogarDeCoberta = false;
+        cobertaBtn.setBackground(new Color(141, 27, 36));
+        cobertaBtn.setBorder(new LineBorder(new Color(102, 0, 0)));
+    }
+    
+    public void updateScore (int tentosJogador, int tentosCPU) {
+        placarJogador.setText("Jogador: " + tentosJogador + " tentos");
+        placarCPU.setText("CPU: " + tentosCPU + " tentos");
+    }
+    
+    public void hideLabel (JLabel label) {
+        label.setIcon(null);
+        label.setBackground(new Color(0, 0, 0, 0));
+        label.setForeground(new Color(0, 0, 0, 0));
     }
 
     /**
@@ -36,7 +78,18 @@ public class TrucoFrame extends javax.swing.JFrame {
     private void initComponents() {
 
         titulo = new javax.swing.JLabel();
-        carta1 = new javax.swing.JLabel();
+        cartaJogador2 = new javax.swing.JLabel();
+        cartaJogador3 = new javax.swing.JLabel();
+        cartaJogador1 = new javax.swing.JLabel();
+        cartaAtualJogador = new javax.swing.JLabel();
+        cartaAtualCPU = new javax.swing.JLabel();
+        placarJogador = new javax.swing.JLabel();
+        placarCPU = new javax.swing.JLabel();
+        trucoBtn = new javax.swing.JLabel();
+        correrBtn = new javax.swing.JLabel();
+        cobertaBtn = new javax.swing.JLabel();
+        aceitarBtn = new javax.swing.JLabel();
+        info = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Truco");
@@ -45,34 +98,162 @@ public class TrucoFrame extends javax.swing.JFrame {
         setResizable(false);
 
         titulo.setFont(new java.awt.Font("Roboto Lt", 0, 48)); // NOI18N
+        titulo.setForeground(new java.awt.Color(255, 255, 255));
         titulo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         titulo.setText("TRUCO");
-        titulo.setOpaque(true);
 
-        carta1.setBackground(new java.awt.Color(255, 102, 102));
-        carta1.setOpaque(true);
+        cartaJogador2.setBackground(new java.awt.Color(255, 102, 102));
+        cartaJogador2.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        cartaJogador2.setOpaque(true);
+
+        cartaJogador3.setBackground(new java.awt.Color(255, 102, 102));
+        cartaJogador3.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        cartaJogador3.setOpaque(true);
+
+        cartaJogador1.setBackground(new java.awt.Color(255, 102, 102));
+        cartaJogador1.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        cartaJogador1.setOpaque(true);
+
+        cartaAtualJogador.setBackground(new java.awt.Color(255, 102, 102));
+        cartaAtualJogador.setOpaque(true);
+
+        cartaAtualCPU.setBackground(new java.awt.Color(255, 102, 102));
+        cartaAtualCPU.setOpaque(true);
+
+        placarJogador.setFont(new java.awt.Font("Roboto Lt", 0, 18)); // NOI18N
+        placarJogador.setForeground(new java.awt.Color(255, 255, 255));
+        placarJogador.setText("Jogador: 0 tentos");
+
+        placarCPU.setFont(new java.awt.Font("Roboto Lt", 0, 18)); // NOI18N
+        placarCPU.setForeground(new java.awt.Color(255, 255, 255));
+        placarCPU.setText("CPU: 0 tentos");
+
+        trucoBtn.setBackground(new java.awt.Color(141, 27, 36));
+        trucoBtn.setFont(new java.awt.Font("Roboto Lt", 0, 16)); // NOI18N
+        trucoBtn.setForeground(new java.awt.Color(255, 255, 255));
+        trucoBtn.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        trucoBtn.setText("TRUCO!");
+        trucoBtn.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 0, 0)));
+        trucoBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        trucoBtn.setOpaque(true);
+
+        correrBtn.setBackground(new java.awt.Color(141, 27, 36));
+        correrBtn.setFont(new java.awt.Font("Roboto Lt", 0, 16)); // NOI18N
+        correrBtn.setForeground(new java.awt.Color(255, 255, 255));
+        correrBtn.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        correrBtn.setText("CORRER!");
+        correrBtn.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 0, 0)));
+        correrBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        correrBtn.setOpaque(true);
+
+        cobertaBtn.setBackground(new java.awt.Color(141, 27, 36));
+        cobertaBtn.setFont(new java.awt.Font("Roboto Lt", 0, 16)); // NOI18N
+        cobertaBtn.setForeground(new java.awt.Color(255, 255, 255));
+        cobertaBtn.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        cobertaBtn.setText("COBERTA");
+        cobertaBtn.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 0, 0)));
+        cobertaBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        cobertaBtn.setOpaque(true);
+        cobertaBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                cobertaBtnMouseClicked(evt);
+            }
+        });
+
+        aceitarBtn.setBackground(new java.awt.Color(141, 27, 36));
+        aceitarBtn.setFont(new java.awt.Font("Roboto Lt", 0, 16)); // NOI18N
+        aceitarBtn.setForeground(new java.awt.Color(255, 255, 255));
+        aceitarBtn.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        aceitarBtn.setText("ACEITAR!");
+        aceitarBtn.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 0, 0)));
+        aceitarBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        aceitarBtn.setOpaque(true);
+
+        info.setFont(new java.awt.Font("Roboto Lt", 0, 24)); // NOI18N
+        info.setForeground(new java.awt.Color(255, 255, 255));
+        info.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        info.setText("Você venceu!");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(titulo, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addGap(138, 138, 138)
-                .addComponent(carta1, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(476, Short.MAX_VALUE))
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(placarCPU, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(placarJogador, javax.swing.GroupLayout.PREFERRED_SIZE, 158, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(titulo, javax.swing.GroupLayout.PREFERRED_SIZE, 353, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(trucoBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(correrBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(aceitarBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(64, 64, 64)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(cartaAtualJogador, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(cartaJogador1, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(50, 50, 50)
+                                .addComponent(cartaJogador2, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(cartaAtualCPU, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(50, 50, 50)
+                        .addComponent(cartaJogador3, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 58, Short.MAX_VALUE)
+                        .addComponent(cobertaBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(info, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(titulo)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 319, Short.MAX_VALUE)
-                .addComponent(carta1, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(34, 34, 34))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(titulo)
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(placarJogador)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(placarCPU)))
+                .addGap(14, 14, 14)
+                .addComponent(cartaAtualCPU, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(info, javax.swing.GroupLayout.DEFAULT_SIZE, 54, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(cartaAtualJogador, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                            .addComponent(cartaJogador1, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(cartaJogador3, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(cartaJogador2, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(aceitarBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(correrBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(trucoBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(cobertaBtn, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void cobertaBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_cobertaBtnMouseClicked
+        jogarDeCoberta = !jogarDeCoberta;
+        if (!jogarDeCoberta) {
+            cobertaBtn.setBackground(new Color(141, 27, 36));
+            cobertaBtn.setBorder(new LineBorder(new Color(102, 0, 0)));
+        } else {
+            cobertaBtn.setBackground(new Color(191, 67, 76));
+            cobertaBtn.setBorder(new LineBorder(new Color(142, 20, 20)));
+        }
+    }//GEN-LAST:event_cobertaBtnMouseClicked
 
     /**
      * @param args the command line arguments
@@ -108,9 +289,23 @@ public class TrucoFrame extends javax.swing.JFrame {
             }
         });
     }
-
+    
+    private boolean jogarDeCoberta;
+    private javax.swing.JLabel background;
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel carta1;
+    private javax.swing.JLabel aceitarBtn;
+    private javax.swing.JLabel cartaAtualCPU;
+    private javax.swing.JLabel cartaAtualJogador;
+    private javax.swing.JLabel cartaJogador1;
+    private javax.swing.JLabel cartaJogador2;
+    private javax.swing.JLabel cartaJogador3;
+    private javax.swing.JLabel cobertaBtn;
+    private javax.swing.JLabel correrBtn;
+    private javax.swing.JLabel info;
+    private javax.swing.JLabel placarCPU;
+    private javax.swing.JLabel placarJogador;
     private javax.swing.JLabel titulo;
+    private javax.swing.JLabel trucoBtn;
     // End of variables declaration//GEN-END:variables
 }
