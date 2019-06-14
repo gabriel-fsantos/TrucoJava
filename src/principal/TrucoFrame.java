@@ -1,3 +1,14 @@
+/**
+ * Package:     principal
+ * Class:       TrucoFrame
+ * Descrição:   Tela do jogo com todos os elementos visuais e interação com o usuário.
+ * Matéria:     Programação de Computadores II
+ * Autores:     Gabriel, Lucas Rassilan, Rebeca Gaia
+ */
+
+package principal;
+
+import baralho.Carta;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -7,14 +18,17 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.border.LineBorder;
+import truco.Truco;
 
-/**
- * @author Gabriel, Lucas Rassilan, Rebeca Gaia
- */
 public class TrucoFrame extends javax.swing.JFrame {
+    /**
+     * Carrega uma imagem para mostra-la em um label
+     * @param path caminho para a imagem
+     * @param label componente que irá mostrar a imagem
+     */
     public static void displayImage (String path, JLabel label) {
         try {
-            BufferedImage img = ImageIO.read(new File(path));
+            BufferedImage img = ImageIO.read(new File("Images\\" + path));
             Image dimg = img.getScaledInstance(label.getWidth(), label.getHeight(), Image.SCALE_SMOOTH);
             ImageIcon imageIcon = new ImageIcon(dimg);
             label.setIcon(imageIcon);
@@ -28,20 +42,21 @@ public class TrucoFrame extends javax.swing.JFrame {
      */
     public TrucoFrame() {
         initComponents();
+        truco = new Truco();
+        
         background = new JLabel();
         background.setLocation(0, 0);
         background.setSize(this.getWidth(), this.getHeight());
         this.add(background);
         
-        TrucoFrame.displayImage("Images\\Background.jpg", background);
+        TrucoFrame.displayImage("Background.jpg", background);
         initializeGame();
     }
     
+    /**
+     * Inicializa um novo jogo
+     */
     public void initializeGame () {
-        TrucoFrame.displayImage("Images\\Verso.png", cartaJogador1);
-        TrucoFrame.displayImage("Images\\Verso.png", cartaJogador2);
-        TrucoFrame.displayImage("Images\\Verso.png", cartaJogador3);
-        
         hideLabel(cartaAtualCPU);
         hideLabel(cartaAtualJogador);
         hideLabel(info);
@@ -50,18 +65,34 @@ public class TrucoFrame extends javax.swing.JFrame {
         aceitarBtn.setVisible(false);
         correrBtn.setVisible(false);
         
-        updateScore(0, 0);
+        updateScore();
         
-        jogarDeCoberta = false;
+        truco.jogador.jogarDeCoberta = false;
         cobertaBtn.setBackground(new Color(141, 27, 36));
         cobertaBtn.setBorder(new LineBorder(new Color(102, 0, 0)));
+        
+        truco.preparaNovaPartida();
+        TrucoFrame.displayImage(truco.jogador.cartas.get(0).getPath(), cartaJogador1);
+        TrucoFrame.displayImage(truco.jogador.cartas.get(1).getPath(), cartaJogador2);
+        TrucoFrame.displayImage(truco.jogador.cartas.get(2).getPath(), cartaJogador3);
+        
+        // DEBUG_ONLY
+        for (Carta c : truco.bot.cartas)
+            System.out.println(c);
     }
     
-    public void updateScore (int tentosJogador, int tentosCPU) {
-        placarJogador.setText("Jogador: " + tentosJogador + " tentos");
-        placarCPU.setText("CPU: " + tentosCPU + " tentos");
+    /**
+     * Atualiza os campos que mostram ao usuário os tentos de cada jogador
+     */
+    public void updateScore () {
+        placarJogador.setText(truco.jogador.getNome() + ": " + truco.jogador.getTentos() + " tentos");
+        placarCPU.setText(truco.bot.getNome() + ": " + truco.bot.getTentos() + " tentos");
     }
     
+    /**
+     * Esconde um componente sem remove-lo do layout
+     * @param label componente a ser escondido
+     */
     public void hideLabel (JLabel label) {
         label.setIcon(null);
         label.setBackground(new Color(0, 0, 0, 0));
@@ -244,9 +275,13 @@ public class TrucoFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    /**
+     * Toggle para o usuário definir se quer jogar a carta de coberta ou não
+     * @param evt 
+     */
     private void cobertaBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_cobertaBtnMouseClicked
-        jogarDeCoberta = !jogarDeCoberta;
-        if (!jogarDeCoberta) {
+        truco.jogador.jogarDeCoberta = !truco.jogador.jogarDeCoberta;
+        if (!truco.jogador.jogarDeCoberta) {
             cobertaBtn.setBackground(new Color(141, 27, 36));
             cobertaBtn.setBorder(new LineBorder(new Color(102, 0, 0)));
         } else {
@@ -290,7 +325,7 @@ public class TrucoFrame extends javax.swing.JFrame {
         });
     }
     
-    private boolean jogarDeCoberta;
+    private Truco truco;
     private javax.swing.JLabel background;
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
