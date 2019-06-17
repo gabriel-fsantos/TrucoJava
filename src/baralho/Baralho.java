@@ -33,7 +33,7 @@ public class Baralho {
     /**
      * Embaralha as cartas e configura a distribuição para começar do topo do baralho
      */
-    public void embaralhar (){
+    public void embaralhar () {
         this.proximaCarta = 0;
         SecureRandom r = new SecureRandom();
         for (int i = 0; i <= r.nextInt(5); i++)

@@ -11,12 +11,16 @@ package truco;
 import baralho.Baralho;
 
 public class Truco {
+    public enum ValoresPartida { REGULAR, TRUCO, SEIS, NOVE, DOZE }
+    
     private Baralho baralho;
+    private ValoresPartida valorPartida;
     
     public JogadorManual jogador;
     public Bot bot;
     
     public Truco () {
+        valorPartida = ValoresPartida.REGULAR;
         baralho = new Baralho();
         jogador = new JogadorManual("Jogador");
         bot = new Bot("CPU");
@@ -24,6 +28,26 @@ public class Truco {
     
     private void verificaMaior () {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    public void jogar () {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    /**
+     * Obtém o valor atual da aposta da partida
+     * @return valor da partida
+     */
+    public ValoresPartida getValorPartida () {
+        return this.valorPartida;
+    }
+    
+    /**
+     * Aumenta a aposta da partida, ou seja, pede Truco, Seis, Nove ou Doze
+     */
+    public void subirAposta () {
+        if (this.valorPartida != ValoresPartida.DOZE)
+            this.valorPartida = ValoresPartida.values()[this.valorPartida.ordinal() + 1];
     }
     
     /**
@@ -35,9 +59,5 @@ public class Truco {
         
         baralho.embaralhar();
         baralho.distribuirCartas(new Jogador[] { jogador, bot });
-    }
-    
-    public void jogar () {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 }
