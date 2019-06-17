@@ -9,19 +9,46 @@
 package truco;
 
 import baralho.Carta;
+import baralho.Carta.ComparacaoCartas;
 
 public class Bot extends Jogador {
+    private Carta cartaInicial;
+
     public Bot (String nome) {
         super(nome);
     }
 
     @Override
-    protected Carta escolheCarta () {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
     public Carta fazJogada (Carta jogadaOposta) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        boolean r = false;
+        if(jogadaOposta != null){
+            while(r){
+                for(Carta c : cartas){
+                    if(c.comparaCartas(jogadaOposta)!= ComparacaoCartas.MAIOR){
+                        r = true;
+                        return c;
+                    }
+                }
+                for(Carta c : cartas){
+                    if(c.comparaCartas(jogadaOposta)!= ComparacaoCartas.MAIOR){
+                        r = true;
+                        return c;
+                    }
+                }
+                for(Carta c : cartas){
+                    if(c.comparaCartas(jogadaOposta)!= ComparacaoCartas.MAIOR){
+                        r = true;
+                        return c;
+                    }
+                }
+            }
+        }else{
+            for(int i=0; i<cartas.size();i++){
+                if(cartas.get(i).comparaCartas(cartas.get(i++))!= ComparacaoCartas.MAIOR){
+                    cartaInicial = cartas.get(i);
+                }
+            }
+        }
+        return cartaInicial;        
     }
 }
