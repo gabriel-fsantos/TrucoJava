@@ -18,37 +18,34 @@ public class Bot extends Jogador {
         super(nome);
     }
 
+    // 1ª versão : Sempre joga a maior carta, quando houver
     @Override
     public Carta fazJogada (Carta jogadaOposta) {
-        boolean r = false;
         if(jogadaOposta != null){
-            while(r){
                 for(Carta c : cartas){
-                    if(c.comparaCartas(jogadaOposta)!= ComparacaoCartas.MAIOR){
-                        r = true;
+                    if(c.comparaCartas(jogadaOposta)== ComparacaoCartas.MAIOR){
                         return c;
                     }
                 }
                 for(Carta c : cartas){
-                    if(c.comparaCartas(jogadaOposta)!= ComparacaoCartas.MAIOR){
-                        r = true;
+                    if(c.comparaCartas(jogadaOposta)== ComparacaoCartas.IGUAIS){
                         return c;
                     }
                 }
                 for(Carta c : cartas){
-                    if(c.comparaCartas(jogadaOposta)!= ComparacaoCartas.MAIOR){
-                        r = true;
+                    if(c.comparaCartas(jogadaOposta)== ComparacaoCartas.MENOR){
                         return c;
                     }
-                }
+                
             }
-        }else{
-            for(int i=0; i<cartas.size();i++){
-                if(cartas.get(i).comparaCartas(cartas.get(i++))!= ComparacaoCartas.MAIOR){
+        }else{ 
+            for(int i=0; i<=(cartas.size()-2);i++){
+                if(cartas.get(i).comparaCartas(cartas.get(i+1))== ComparacaoCartas.MAIOR){
                     cartaInicial = cartas.get(i);
                 }
             }
-        }
-        return cartaInicial;        
+            return cartaInicial; 
+        }            
+        return null;
     }
 }
