@@ -101,7 +101,12 @@ public class TrucoFrame extends javax.swing.JFrame {
         label.setBackground(new Color(0, 0, 0, 0));
         label.setForeground(new Color(0, 0, 0, 0));
     }
-    
+    /*
+     public void ShowLabelAtual (JLabel label) {
+         cartaAtualJogador.setVisible(true);
+         TrucoFrame.displayImage(label.getText(),  cartaAtualJogador);
+    }
+    */
     /**
      * Mostra uma mensagem ao usuário sobre o decorrer da partida
      * @param text mensagem a ser exibida
@@ -153,14 +158,29 @@ public class TrucoFrame extends javax.swing.JFrame {
         cartaJogador2.setBackground(new java.awt.Color(255, 102, 102));
         cartaJogador2.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         cartaJogador2.setOpaque(true);
+        cartaJogador2.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                cartaJogador2MouseClicked(evt);
+            }
+        });
 
         cartaJogador3.setBackground(new java.awt.Color(255, 102, 102));
         cartaJogador3.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         cartaJogador3.setOpaque(true);
+        cartaJogador3.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                cartaJogador3MouseClicked(evt);
+            }
+        });
 
         cartaJogador1.setBackground(new java.awt.Color(255, 102, 102));
         cartaJogador1.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         cartaJogador1.setOpaque(true);
+        cartaJogador1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                cartaJogador1MouseClicked(evt);
+            }
+        });
 
         cartaAtualJogador.setBackground(new java.awt.Color(255, 102, 102));
         cartaAtualJogador.setOpaque(true);
@@ -290,7 +310,7 @@ public class TrucoFrame extends javax.swing.JFrame {
                 .addGap(14, 14, 14)
                 .addComponent(cartaAtualCPU, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(info, javax.swing.GroupLayout.DEFAULT_SIZE, 54, Short.MAX_VALUE)
+                .addComponent(info, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
@@ -342,6 +362,39 @@ public class TrucoFrame extends javax.swing.JFrame {
         showInfo(this.truco.getValorPartida() + "!", 3000);
         trucoBtn.setVisible(false);
     }//GEN-LAST:event_trucoBtnMouseClicked
+
+    private void cartaJogador2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_cartaJogador2MouseClicked
+        if(!truco.jogador.jogarDeCoberta){
+            TrucoFrame.displayImage(truco.jogador.cartas.get(1).getPath(), cartaAtualJogador);
+        }
+        else{
+            TrucoFrame.displayImage("Verso.png", cartaAtualJogador);
+        } 
+        this.hideLabel(cartaJogador2);
+        repaint();
+    }//GEN-LAST:event_cartaJogador2MouseClicked
+
+    private void cartaJogador1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_cartaJogador1MouseClicked
+        if(!truco.jogador.jogarDeCoberta){
+            TrucoFrame.displayImage(truco.jogador.cartas.get(0).getPath(), cartaAtualJogador);
+        }
+        else{
+            TrucoFrame.displayImage("Verso.png", cartaAtualJogador);
+        } 
+        this.hideLabel(cartaJogador1);
+        repaint();
+    }//GEN-LAST:event_cartaJogador1MouseClicked
+
+    private void cartaJogador3MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_cartaJogador3MouseClicked
+        if(!truco.jogador.jogarDeCoberta){
+            TrucoFrame.displayImage(truco.jogador.cartas.get(2).getPath(), cartaAtualJogador);
+        }
+        else{
+            TrucoFrame.displayImage("Verso.png", cartaAtualJogador);
+        } 
+        this.hideLabel(cartaJogador3);
+        repaint();
+    }//GEN-LAST:event_cartaJogador3MouseClicked
 
     /**
      * @param args the command line arguments

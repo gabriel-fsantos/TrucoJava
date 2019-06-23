@@ -48,4 +48,9 @@ public class Bot extends Jogador {
         }            
         return null;
     }
+
+    @Override
+    protected Carta escolheCarta() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }
