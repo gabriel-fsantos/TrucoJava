@@ -73,7 +73,7 @@ public class TrucoFrame extends javax.swing.JFrame {
         cobertaBtn.setBorder(new LineBorder(new Color(102, 0, 0)));
         
         truco.preparaNovaPartida();
-        if(truco.usuario.getTentos()==10 || truco.bot.getTentos()==10){
+        if(truco.usuario.getTentos()==10 && truco.bot.getTentos()==10){
             TrucoFrame.displayImage("Verso.png", cartaJogador1);
             TrucoFrame.displayImage("Verso.png", cartaJogador2);
             TrucoFrame.displayImage("Verso.png", cartaJogador3);
@@ -89,7 +89,7 @@ public class TrucoFrame extends javax.swing.JFrame {
         //    System.out.println(c);
         
         if (!truco.eVezDoJogador()) {
-            if(truco.usuario.getTentos()==10 || truco.bot.getTentos()==10){
+            if(truco.usuario.getTentos()==10 && truco.bot.getTentos()==10){
                 truco.bot.fazJogadaAleatoria();
             }
             else{
