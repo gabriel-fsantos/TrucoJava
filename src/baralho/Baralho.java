@@ -46,8 +46,12 @@ public class Baralho {
      */
     public void distribuirCartas (Jogador[] jogadores) {
         for (Jogador j : jogadores) {
-            for (int i = 0; i < 3; i++)
-                j.adicionaCarta(this.cartas.get(this.proximaCarta++));
+            j.cartas = new ArrayList<>();
+            for (int i = 0; i < 3; i++) {
+                Carta novaCarta = this.cartas.get(this.proximaCarta++);
+                novaCarta.setUsada(false);
+                j.adicionaCarta(novaCarta);
+            }
         }
     }
 }

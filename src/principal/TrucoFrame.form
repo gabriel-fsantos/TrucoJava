@@ -37,10 +37,10 @@
                   <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="0" max="-2" attributes="0">
                           <Component id="placarCPU" max="32767" attributes="0"/>
-                          <Component id="placarJogador" min="-2" pref="158" max="-2" attributes="0"/>
+                          <Component id="placarJogador" pref="252" max="32767" attributes="0"/>
                       </Group>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="titulo" min="-2" pref="353" max="-2" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Component id="titulo" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
                   <Group type="102" attributes="0">
@@ -200,7 +200,7 @@
         <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
           <Color blue="ff" green="ff" red="ff" type="rgb"/>
         </Property>
-        <Property name="text" type="java.lang.String" value="Jogador: 0 tentos"/>
+        <Property name="text" type="java.lang.String" value="Jogador: 0 tentos (0 quedas)"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="placarCPU">
@@ -211,7 +211,7 @@
         <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
           <Color blue="ff" green="ff" red="ff" type="rgb"/>
         </Property>
-        <Property name="text" type="java.lang.String" value="CPU: 0 tentos"/>
+        <Property name="text" type="java.lang.String" value="CPU: 0 tentos (0 quedas)"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="trucoBtn">

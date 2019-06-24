@@ -35,10 +35,28 @@ public class Carta {
     public Carta (Naipe naipe, int valor) {
         this.naipe = naipe;
         this.valor = valor;
+        this.usada = false;
     }
     
     private Naipe naipe;
     private int valor;
+    private boolean usada;
+
+    /**
+     * Informa se a carta já foi jogada
+     * @return indica se a carta disponível
+     */
+    public boolean isUsada () {
+        return usada;
+    }
+
+    /**
+     * Altera o estado de uso da carta
+     * @param usada 
+     */
+    public void setUsada (boolean usada) {
+        this.usada = usada;
+    }
 
     /**
      * Obtém o naipe desta carta

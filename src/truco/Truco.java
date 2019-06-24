@@ -9,29 +9,42 @@
 package truco;
 
 import baralho.Baralho;
+import baralho.Carta;
 
 public class Truco {
     public enum ValoresPartida { REGULAR, TRUCO, SEIS, NOVE, DOZE }
     
+    private boolean usuarioComecouNaPartidaAnterior;
+    private boolean vezDoUsuario;
     private Baralho baralho;
     private ValoresPartida valorPartida;
     
-    public JogadorManual jogador;
+    public boolean eMaoDaMaior;
+    public JogadorManual usuario;
     public Bot bot;
     
     public Truco () {
+        usuarioComecouNaPartidaAnterior = false;
         valorPartida = ValoresPartida.REGULAR;
         baralho = new Baralho();
-        jogador = new JogadorManual("Jogador");
+        usuario = new JogadorManual("Jogador");
         bot = new Bot("CPU");
     }
     
-    private void verificaMaior () {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Carta.ComparacaoCartas jogar (Carta jogadaUsuario, boolean coberta) {
+        vezDoUsuario = false;
+        if (bot.cartaJogada == null)
+            bot.fazJogada(jogadaUsuario, coberta, eMaoDaMaior);
+        
+        return !coberta ? jogadaUsuario.comparaCartas(bot.cartaJogada) : Carta.ComparacaoCartas.MENOR;
     }
     
-    public void jogar () {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public boolean eVezDoJogador () {
+        return vezDoUsuario;
+    }
+    
+    public void botJogou () {
+        vezDoUsuario = true;
     }
     
     /**
@@ -40,6 +53,21 @@ public class Truco {
      */
     public ValoresPartida getValorPartida () {
         return this.valorPartida;
+    }
+    
+    public int getValorNumericoPartida () {
+        switch (this.valorPartida) {
+            case DOZE:
+                return 12;
+            case NOVE:
+                return 10;
+            case SEIS:
+                return 8;
+            case TRUCO:
+                return 4;
+            default:
+                return 2;
+        }
     }
     
     /**
@@ -54,10 +82,20 @@ public class Truco {
      * Zera todas as variáveis de controle da rodada, embaralha e distribui cartas
      */
     public void preparaNovaPartida () {
-        jogador.preparaNovaPartida();
-        bot.preparaNovaPartida();
+        vezDoUsuario = !usuarioComecouNaPartidaAnterior;
+        usuarioComecouNaPartidaAnterior = vezDoUsuario;
         
+        usuario.preparaNovaPartida();
+        bot.preparaNovaPartida();
+        bot.cartaJogada = null;
+        
+        eMaoDaMaior = false;
         baralho.embaralhar();
-        baralho.distribuirCartas(new Jogador[] { jogador, bot });
+        baralho.distribuirCartas(new Jogador[] { usuario, bot });
+    }
+    
+    public void preparaNovaRodada () {
+        bot.cartaJogada = null;
+        vezDoUsuario = true;
     }
 }

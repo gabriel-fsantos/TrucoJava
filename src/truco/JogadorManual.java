@@ -8,8 +8,6 @@
 
 package truco;
 
-import baralho.Carta;
-
 public class JogadorManual extends Jogador {
     public JogadorManual (String nome) {
         super(nome);
@@ -17,18 +15,4 @@ public class JogadorManual extends Jogador {
     }
     
     public boolean jogarDeCoberta;
-
-    @Override
-    protected Carta escolheCarta () {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public Carta fazJogada (Carta jogadaOposta) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-    
-    private void mostraOpcoes () {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
 }

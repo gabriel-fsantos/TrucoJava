@@ -15,11 +15,15 @@ public abstract class Jogador {
     public Jogador (String nome) {
         this.nome = nome;
         this.tentos = 0;
+        this.quedas = 0;
         this.pontuacaoPartida = 0;
+        this.fezAPrimeira = false;
         this.cartas = new ArrayList<>();
     }
     
+    protected boolean fezAPrimeira;
     protected String nome;
+    protected int quedas;
     protected int tentos;
     protected int pontuacaoPartida;
     public ArrayList<Carta> cartas;
@@ -30,6 +34,22 @@ public abstract class Jogador {
      */
     public String getNome () {
         return nome;
+    }
+
+    /**
+     * Obtém a quantidade de quedas vencidas pelo jogador
+     * @return quantidade de quedas
+     */
+    public int getQuedas () {
+        return quedas;
+    }
+
+    /**
+     * Altera a quantidade quedas vencidas pelo jogador
+     * @param quedas nova quantidade de quedas
+     */
+    public void setQuedas (int quedas) {
+        this.quedas = quedas;
     }
 
     /**
@@ -62,12 +82,21 @@ public abstract class Jogador {
     public void venceuRodada () {
         this.pontuacaoPartida++;
     }
+
+    public boolean fezAPrimeira () {
+        return fezAPrimeira;
+    }
+
+    public void setFezAPrimeira (boolean fezAPrimeira) {
+        this.fezAPrimeira = fezAPrimeira;
+    }
     
     /**
      * Prepara o jogador para a próxima partida
      */
     public void preparaNovaPartida () {
         this.pontuacaoPartida = 0;
+        this.fezAPrimeira = false;
     }
     
     /**
@@ -77,8 +106,4 @@ public abstract class Jogador {
     public void adicionaCarta (Carta c) {
         this.cartas.add(c);
     }
-    
-    protected abstract Carta escolheCarta();
-    
-    public abstract Carta fazJogada(Carta jogadaOposta);
 }

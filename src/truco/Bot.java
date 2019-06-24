@@ -10,47 +10,69 @@ package truco;
 
 import baralho.Carta;
 import baralho.Carta.ComparacaoCartas;
+import java.util.ArrayList;
 
 public class Bot extends Jogador {
-    private Carta cartaInicial;
-
     public Bot (String nome) {
         super(nome);
+        this.cartaJogada = null;
     }
+    
+    public Carta cartaJogada;
 
-    // 1ª versão : Sempre joga a maior carta, quando houver
-    @Override
-    public Carta fazJogada (Carta jogadaOposta) {
-        if(jogadaOposta != null){
-                for(Carta c : cartas){
-                    if(c.comparaCartas(jogadaOposta)== ComparacaoCartas.MAIOR){
-                        return c;
-                    }
+    // 2ª versão
+    public void fazJogada (Carta jogadaOposta, boolean coberta, boolean maoDaMaior) {
+        Carta carta = null;
+        
+        if (maoDaMaior) {
+            // Joga a maior
+            for (int i = 0; i < 3; i++) {
+                System.out.println(cartas.get(i) + ": " + cartas.get(i).isUsada());
+                if (!cartas.get(i).isUsada() && (carta == null || cartas.get(i).comparaCartas(carta) == ComparacaoCartas.MAIOR)) {
+                    carta = cartas.get(i);
                 }
-                for(Carta c : cartas){
-                    if(c.comparaCartas(jogadaOposta)== ComparacaoCartas.IGUAIS){
-                        return c;
-                    }
-                }
-                for(Carta c : cartas){
-                    if(c.comparaCartas(jogadaOposta)== ComparacaoCartas.MENOR){
-                        return c;
-                    }
+            }
+        }
+        
+        if (!coberta && carta == null) {
+            if (jogadaOposta != null) {
+                // Joga a menor que for maior que jogadaOposta
+                ArrayList<Carta> cartasValidas = new ArrayList<>();
                 
-            }
-        }else{ 
-            for(int i=0; i<=(cartas.size()-2);i++){
-                if(cartas.get(i).comparaCartas(cartas.get(i+1))== ComparacaoCartas.MAIOR){
-                    cartaInicial = cartas.get(i);
+                // Separa as cartas que são maiores que jogadaOposta
+                for (int i = 0; i < 3; i++) {
+                    if (!cartas.get(i).isUsada() && (cartas.get(i).comparaCartas(jogadaOposta) == ComparacaoCartas.MAIOR)) {
+                        cartasValidas.add(cartas.get(i));
+                    }
+                }
+                
+                // Joga a menor carta, dentre as selecionadas
+                for (int i = 0; i < cartasValidas.size(); i++) {
+                    if (carta == null || cartasValidas.get(i).comparaCartas(carta) == ComparacaoCartas.MENOR) {
+                        carta = cartasValidas.get(i);
+                    }
+                }
+            } else {
+                // Joga a maior
+                for (int i = 0; i < 3; i++) {
+                    if (!cartas.get(i).isUsada() && (carta == null || cartas.get(i).comparaCartas(carta) == ComparacaoCartas.MAIOR)) {
+                        carta = cartas.get(i);
+                    }
                 }
             }
-            return cartaInicial; 
-        }            
-        return null;
-    }
-
-    @Override
-    protected Carta escolheCarta() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+        
+        if (carta == null) {
+            // Joga a menor
+            for (int i = 0; i < 3; i++) {
+                System.out.println(cartas.get(i) + ": " + cartas.get(i).isUsada());
+                if (!cartas.get(i).isUsada() && (carta == null || cartas.get(i).comparaCartas(carta) == ComparacaoCartas.MENOR)) {
+                    carta = cartas.get(i);
+                }
+            }
+        }
+        
+        cartaJogada = carta;
+        cartaJogada.setUsada(true);
     }
 }

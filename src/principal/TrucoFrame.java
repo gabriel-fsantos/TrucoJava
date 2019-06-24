@@ -68,28 +68,35 @@ public class TrucoFrame extends javax.swing.JFrame {
         
         updateScore();
         
-        truco.jogador.jogarDeCoberta = false;
+        truco.usuario.jogarDeCoberta = false;
         cobertaBtn.setBackground(new Color(141, 27, 36));
         cobertaBtn.setBorder(new LineBorder(new Color(102, 0, 0)));
         
         truco.preparaNovaPartida();
-        TrucoFrame.displayImage(truco.jogador.cartas.get(0).getPath(), cartaJogador1);
-        TrucoFrame.displayImage(truco.jogador.cartas.get(1).getPath(), cartaJogador2);
-        TrucoFrame.displayImage(truco.jogador.cartas.get(2).getPath(), cartaJogador3);
+        TrucoFrame.displayImage(truco.usuario.cartas.get(0).getPath(), cartaJogador1);
+        TrucoFrame.displayImage(truco.usuario.cartas.get(1).getPath(), cartaJogador2);
+        TrucoFrame.displayImage(truco.usuario.cartas.get(2).getPath(), cartaJogador3);
         
         // DEBUG_ONLY
-        for (Carta c : truco.bot.cartas)
-            System.out.println(c);
+        //for (Carta c : truco.bot.cartas)
+        //    System.out.println(c);
         
+        if (!truco.eVezDoJogador()) {
+            truco.bot.fazJogada(null, false, truco.eMaoDaMaior);
+            TrucoFrame.displayImage(truco.bot.cartaJogada.getPath(), cartaAtualCPU);
+            truco.botJogou();
+        }
+            
         showInfo("É a sua vez.", 2000);
+        repaint();
     }
     
     /**
-     * Atualiza os campos que mostram ao usuário os tentos de cada jogador
+     * Atualiza os campos que mostram ao usuário os tentos de cada usuario
      */
     public void updateScore () {
-        placarJogador.setText(truco.jogador.getNome() + ": " + truco.jogador.getTentos() + " tentos");
-        placarCPU.setText(truco.bot.getNome() + ": " + truco.bot.getTentos() + " tentos");
+        placarJogador.setText(truco.usuario.getNome() + ": " + truco.usuario.getTentos() + " tentos (" + truco.usuario.getQuedas()+ " quedas)");
+        placarCPU.setText(truco.bot.getNome() + ": " + truco.bot.getTentos() + " tentos (" + truco.bot.getQuedas() + " quedas)");
     }
     
     /**
@@ -114,9 +121,105 @@ public class TrucoFrame extends javax.swing.JFrame {
      */
     public void showInfo (String text, int duration) {
         info.setText(text);
+        repaint();
         
         ScheduledThreadPoolExecutor waitThread = new ScheduledThreadPoolExecutor(1);
         waitThread.schedule(() -> { info.setText(""); }, duration, TimeUnit.MILLISECONDS);
+    }
+    
+    public void jogaCarta (int n) {
+        if (truco.usuario.cartas.get(n).isUsada() || !truco.eVezDoJogador()) return;
+        
+        if (!truco.usuario.jogarDeCoberta)
+            TrucoFrame.displayImage(truco.usuario.cartas.get(n).getPath(), cartaAtualJogador);
+        else
+            TrucoFrame.displayImage("Verso.png", cartaAtualJogador);
+        
+        truco.usuario.cartas.get(n).setUsada(true);
+        this.hideLabel(n == 0 ? cartaJogador1 : (n == 1 ? cartaJogador2 : cartaJogador3));
+        
+        // Realiza a jogada do bot ou valida a rodada
+        Carta.ComparacaoCartas resultadoRodada = truco.jogar(truco.usuario.cartas.get(n), truco.usuario.jogarDeCoberta);
+        if (resultadoRodada == Carta.ComparacaoCartas.IGUAIS)
+            truco.eMaoDaMaior = true;
+        
+        // Garante exibição da carta do computador
+        TrucoFrame.displayImage(truco.bot.cartaJogada.getPath(), cartaAtualCPU);
+        
+        // Desativa coberta, caso esteja ativada
+        if (truco.usuario.jogarDeCoberta)
+            cobertaBtnMouseClicked(null);
+        
+        repaint();
+        switch (resultadoRodada) {
+            case IGUAIS:
+                usuarioEProximo = !usuarioEProximo;
+                showInfo("Jogada cangada!", 2000);
+                break;
+            case MAIOR:
+                usuarioEProximo = true;
+                showInfo("Você fez a rodada!", 2000);
+                truco.usuario.venceuRodada();
+                if (!truco.bot.fezAPrimeira() && !truco.usuario.fezAPrimeira())
+                    truco.usuario.setFezAPrimeira(true);
+                
+                break;
+            case MENOR:
+                usuarioEProximo = false;
+                showInfo("Você perdeu a rodada!", 2000);
+                truco.bot.venceuRodada();
+                if (!truco.bot.fezAPrimeira() && !truco.usuario.fezAPrimeira())
+                    truco.bot.setFezAPrimeira(true);
+                
+                break;
+        }
+        
+        preparaNovaRodada(resultadoRodada);
+    }
+    
+    private void preparaNovaRodada (Carta.ComparacaoCartas resultadoRodada) {
+        boolean venceuPelaPrimeiraRodada = resultadoRodada == Carta.ComparacaoCartas.IGUAIS && (truco.usuario.getPontuacaoPartidada() == 1 || truco.bot.getPontuacaoPartidada() == 1);
+        if (truco.bot.getPontuacaoPartidada() == 2 || truco.usuario.getPontuacaoPartidada() == 2 || venceuPelaPrimeiraRodada) {
+            if (truco.usuario.getPontuacaoPartidada() == 2 || (venceuPelaPrimeiraRodada && truco.usuario.fezAPrimeira())) {
+                showInfo("Você veceu a partida!", 3000);
+                int pontuacao = truco.usuario.getTentos() + truco.getValorNumericoPartida();
+                if (pontuacao >= 12) {
+                    pontuacao = 0;
+                    truco.usuario.setQuedas(truco.usuario.getQuedas() + 1);
+                    truco.bot.setTentos(0);
+                }
+
+                truco.usuario.setTentos(pontuacao);
+            } else {
+                showInfo("O Computador veceu a partida!", 3000);
+                int pontuacao = truco.bot.getTentos() + truco.getValorNumericoPartida();
+                if (pontuacao >= 12) {
+                    pontuacao = 0;
+                    truco.bot.setQuedas(truco.usuario.getQuedas() + 1);
+                    truco.usuario.setTentos(0);
+                }
+
+                truco.bot.setTentos(pontuacao);
+            }
+
+            repaint();
+            ScheduledThreadPoolExecutor wait = new ScheduledThreadPoolExecutor(1);
+            wait.schedule(() -> initializeGame(), 3000, TimeUnit.MILLISECONDS);
+        } else {
+            ScheduledThreadPoolExecutor waitThread = new ScheduledThreadPoolExecutor(1);
+            waitThread.schedule(() -> {
+                hideLabel(cartaAtualCPU);
+                hideLabel(cartaAtualJogador);
+
+                truco.preparaNovaRodada();
+                if (!usuarioEProximo) {
+                    truco.bot.fazJogada(null, false, truco.eMaoDaMaior);
+                    TrucoFrame.displayImage(truco.bot.cartaJogada.getPath(), cartaAtualCPU);
+                }
+                
+                repaint();
+            }, 3000, TimeUnit.MILLISECONDS);
+        }
     }
 
     /**
@@ -190,11 +293,11 @@ public class TrucoFrame extends javax.swing.JFrame {
 
         placarJogador.setFont(new java.awt.Font("Roboto Lt", 0, 18)); // NOI18N
         placarJogador.setForeground(new java.awt.Color(255, 255, 255));
-        placarJogador.setText("Jogador: 0 tentos");
+        placarJogador.setText("Jogador: 0 tentos (0 quedas)");
 
         placarCPU.setFont(new java.awt.Font("Roboto Lt", 0, 18)); // NOI18N
         placarCPU.setForeground(new java.awt.Color(255, 255, 255));
-        placarCPU.setText("CPU: 0 tentos");
+        placarCPU.setText("CPU: 0 tentos (0 quedas)");
 
         trucoBtn.setBackground(new java.awt.Color(141, 27, 36));
         trucoBtn.setFont(new java.awt.Font("Roboto Lt", 0, 16)); // NOI18N
@@ -270,9 +373,9 @@ public class TrucoFrame extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(placarCPU, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(placarJogador, javax.swing.GroupLayout.PREFERRED_SIZE, 158, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(titulo, javax.swing.GroupLayout.PREFERRED_SIZE, 353, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(placarJogador, javax.swing.GroupLayout.DEFAULT_SIZE, 252, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(titulo)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -343,8 +446,8 @@ public class TrucoFrame extends javax.swing.JFrame {
      * @param evt 
      */
     private void cobertaBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_cobertaBtnMouseClicked
-        truco.jogador.jogarDeCoberta = !truco.jogador.jogarDeCoberta;
-        if (!truco.jogador.jogarDeCoberta) {
+        truco.usuario.jogarDeCoberta = !truco.usuario.jogarDeCoberta;
+        if (!truco.usuario.jogarDeCoberta) {
             cobertaBtn.setBackground(new Color(141, 27, 36));
             cobertaBtn.setBorder(new LineBorder(new Color(102, 0, 0)));
         } else {
@@ -364,36 +467,15 @@ public class TrucoFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_trucoBtnMouseClicked
 
     private void cartaJogador2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_cartaJogador2MouseClicked
-        if(!truco.jogador.jogarDeCoberta){
-            TrucoFrame.displayImage(truco.jogador.cartas.get(1).getPath(), cartaAtualJogador);
-        }
-        else{
-            TrucoFrame.displayImage("Verso.png", cartaAtualJogador);
-        } 
-        this.hideLabel(cartaJogador2);
-        repaint();
+        jogaCarta(1);
     }//GEN-LAST:event_cartaJogador2MouseClicked
 
     private void cartaJogador1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_cartaJogador1MouseClicked
-        if(!truco.jogador.jogarDeCoberta){
-            TrucoFrame.displayImage(truco.jogador.cartas.get(0).getPath(), cartaAtualJogador);
-        }
-        else{
-            TrucoFrame.displayImage("Verso.png", cartaAtualJogador);
-        } 
-        this.hideLabel(cartaJogador1);
-        repaint();
+        jogaCarta(0);
     }//GEN-LAST:event_cartaJogador1MouseClicked
 
     private void cartaJogador3MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_cartaJogador3MouseClicked
-        if(!truco.jogador.jogarDeCoberta){
-            TrucoFrame.displayImage(truco.jogador.cartas.get(2).getPath(), cartaAtualJogador);
-        }
-        else{
-            TrucoFrame.displayImage("Verso.png", cartaAtualJogador);
-        } 
-        this.hideLabel(cartaJogador3);
-        repaint();
+        jogaCarta(2);
     }//GEN-LAST:event_cartaJogador3MouseClicked
 
     /**
@@ -431,6 +513,7 @@ public class TrucoFrame extends javax.swing.JFrame {
         });
     }
     
+    private boolean usuarioEProximo;
     private Truco truco;
     private javax.swing.JLabel background;
     
