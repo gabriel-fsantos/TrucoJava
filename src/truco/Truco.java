@@ -78,6 +78,10 @@ public class Truco {
             this.valorPartida = ValoresPartida.values()[this.valorPartida.ordinal() + 1];
     }
     
+    public void zeraAposta (){
+        this.valorPartida = ValoresPartida.REGULAR;
+    }
+    
     /**
      * Zera todas as variáveis de controle da rodada, embaralha e distribui cartas
      */

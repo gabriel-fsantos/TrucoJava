@@ -73,20 +73,33 @@ public class TrucoFrame extends javax.swing.JFrame {
         cobertaBtn.setBorder(new LineBorder(new Color(102, 0, 0)));
         
         truco.preparaNovaPartida();
-        TrucoFrame.displayImage(truco.usuario.cartas.get(0).getPath(), cartaJogador1);
-        TrucoFrame.displayImage(truco.usuario.cartas.get(1).getPath(), cartaJogador2);
-        TrucoFrame.displayImage(truco.usuario.cartas.get(2).getPath(), cartaJogador3);
+        if(truco.usuario.getTentos()==10 || truco.bot.getTentos()==10){
+            TrucoFrame.displayImage("Verso.png", cartaJogador1);
+            TrucoFrame.displayImage("Verso.png", cartaJogador2);
+            TrucoFrame.displayImage("Verso.png", cartaJogador3);
+        }
+        else{
+            TrucoFrame.displayImage(truco.usuario.cartas.get(0).getPath(), cartaJogador1);
+            TrucoFrame.displayImage(truco.usuario.cartas.get(1).getPath(), cartaJogador2);
+            TrucoFrame.displayImage(truco.usuario.cartas.get(2).getPath(), cartaJogador3);
+        }
         
         // DEBUG_ONLY
         //for (Carta c : truco.bot.cartas)
         //    System.out.println(c);
         
         if (!truco.eVezDoJogador()) {
-            truco.bot.fazJogada(null, false, truco.eMaoDaMaior);
+            if(truco.usuario.getTentos()==10 || truco.bot.getTentos()==10){
+                truco.bot.fazJogadaAleatoria();
+            }
+            else{
+                truco.bot.fazJogada(null, false, truco.eMaoDaMaior);
+            }
             TrucoFrame.displayImage(truco.bot.cartaJogada.getPath(), cartaAtualCPU);
             truco.botJogou();
         }
-            
+        truco.zeraAposta();
+        trucoBtn.setVisible(true);
         showInfo("É a sua vez.", 2000);
         repaint();
     }
@@ -108,12 +121,7 @@ public class TrucoFrame extends javax.swing.JFrame {
         label.setBackground(new Color(0, 0, 0, 0));
         label.setForeground(new Color(0, 0, 0, 0));
     }
-    /*
-     public void ShowLabelAtual (JLabel label) {
-         cartaAtualJogador.setVisible(true);
-         TrucoFrame.displayImage(label.getText(),  cartaAtualJogador);
-    }
-    */
+    
     /**
      * Mostra uma mensagem ao usuário sobre o decorrer da partida
      * @param text mensagem a ser exibida
@@ -219,7 +227,7 @@ public class TrucoFrame extends javax.swing.JFrame {
                 
                 repaint();
             }, 3000, TimeUnit.MILLISECONDS);
-        }
+        }  
     }
 
     /**

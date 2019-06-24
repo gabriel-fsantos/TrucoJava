@@ -11,6 +11,8 @@ package truco;
 import baralho.Carta;
 import baralho.Carta.ComparacaoCartas;
 import java.util.ArrayList;
+import java.util.Random;
+import static javax.swing.UIManager.get;
 
 public class Bot extends Jogador {
     public Bot (String nome) {
@@ -21,6 +23,15 @@ public class Bot extends Jogador {
     public Carta cartaJogada;
 
     // 2ª versão
+    
+    public void fazJogadaAleatoria(){
+        Random gerador = new Random();
+        Carta carta = null; 
+        carta = cartas.get(gerador.nextInt(3));
+        cartaJogada = carta;
+        cartaJogada.setUsada(true);
+    }
+    
     public void fazJogada (Carta jogadaOposta, boolean coberta, boolean maoDaMaior) {
         Carta carta = null;
         
