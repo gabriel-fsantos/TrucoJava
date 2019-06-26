@@ -86,4 +86,17 @@ public class Bot extends Jogador {
         cartaJogada = carta;
         cartaJogada.setUsada(true);
     }
+    
+    public boolean pedeTruco(){
+        int somaValor=0;
+        for (int i = 0; i < 3; i++) {
+            if (!cartas.get(i).isUsada()){
+                somaValor = somaValor + cartas.get(i).getValor();
+            }
+        }
+        if (somaValor>25)
+            return true;
+        else
+            return false;
+    }
 }
