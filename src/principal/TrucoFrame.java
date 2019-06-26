@@ -19,8 +19,10 @@ import java.util.concurrent.TimeUnit;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.border.LineBorder;
 import truco.Truco;
+import truco.Truco.ValoresPartida;
 
 public class TrucoFrame extends javax.swing.JFrame {
     /**
@@ -186,10 +188,16 @@ public class TrucoFrame extends javax.swing.JFrame {
     }
     
     private void preparaNovaRodada (Carta.ComparacaoCartas resultadoRodada) {
+        if(truco.bot.pedeTruco() && this.truco.getValorPartida() != ValoresPartida.DOZE){
+            int resposta = JOptionPane.showConfirmDialog(null, "Computador pediu TRUCO. Deseja aceitar?", "Truco", JOptionPane.YES_OPTION);
+            if (resposta == JOptionPane.YES_OPTION) 
+                aumentaAposta();
+        }
         boolean venceuPelaPrimeiraRodada = resultadoRodada == Carta.ComparacaoCartas.IGUAIS && (truco.usuario.getPontuacaoPartidada() == 1 || truco.bot.getPontuacaoPartidada() == 1);
         if (truco.bot.getPontuacaoPartidada() == 2 || truco.usuario.getPontuacaoPartidada() == 2 || venceuPelaPrimeiraRodada) {
             if (truco.usuario.getPontuacaoPartidada() == 2 || (venceuPelaPrimeiraRodada && truco.usuario.fezAPrimeira())) {
-                showInfo("Você veceu a partida!", 3000);
+                showInfo("Você venceu a partida!", 3000);
+
                 int pontuacao = truco.usuario.getTentos() + truco.getValorNumericoPartida();
                 if (pontuacao >= 12) {
                     pontuacao = 0;
@@ -199,7 +207,7 @@ public class TrucoFrame extends javax.swing.JFrame {
 
                 truco.usuario.setTentos(pontuacao);
             } else {
-                showInfo("O Computador veceu a partida!", 3000);
+                showInfo("O Computador venceu a partida!", 3000);
                 int pontuacao = truco.bot.getTentos() + truco.getValorNumericoPartida();
                 if (pontuacao >= 12) {
                     pontuacao = 0;
@@ -209,10 +217,12 @@ public class TrucoFrame extends javax.swing.JFrame {
 
                 truco.bot.setTentos(pontuacao);
             }
-
+            
             repaint();
             ScheduledThreadPoolExecutor wait = new ScheduledThreadPoolExecutor(1);
             wait.schedule(() -> initializeGame(), 3000, TimeUnit.MILLISECONDS);
+            trucoBtn.setText(String.valueOf(ValoresPartida.TRUCO)+"!");
+            
         } else {
             ScheduledThreadPoolExecutor waitThread = new ScheduledThreadPoolExecutor(1);
             waitThread.schedule(() -> {
@@ -453,6 +463,17 @@ public class TrucoFrame extends javax.swing.JFrame {
      * Toggle para o usuário definir se quer jogar a carta de coberta ou não
      * @param evt 
      */
+    
+    //Método usado para aumentar a aposta pelo jogador ou pelo bot
+    private void aumentaAposta() {                                      
+        this.truco.subirAposta();
+        showInfo(this.truco.getValorPartida() + "!", 3000);
+        if(this.truco.getValorPartida() == ValoresPartida.DOZE)
+            trucoBtn.setVisible(false);
+        else
+            trucoBtn.setText(String.valueOf(ValoresPartida.values()[this.truco.getValorPartida().ordinal() + 1])+"!");              
+    }   
+    
     private void cobertaBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_cobertaBtnMouseClicked
         truco.usuario.jogarDeCoberta = !truco.usuario.jogarDeCoberta;
         if (!truco.usuario.jogarDeCoberta) {
@@ -469,9 +490,8 @@ public class TrucoFrame extends javax.swing.JFrame {
      * @param evt 
      */
     private void trucoBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_trucoBtnMouseClicked
-        this.truco.subirAposta();
-        showInfo(this.truco.getValorPartida() + "!", 3000);
-        trucoBtn.setVisible(false);
+        //método usado para aumentar a aposta pelo jogador ou pelo bot
+        aumentaAposta();
     }//GEN-LAST:event_trucoBtnMouseClicked
 
     private void cartaJogador2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_cartaJogador2MouseClicked
