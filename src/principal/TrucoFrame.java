@@ -86,6 +86,19 @@ public class TrucoFrame extends javax.swing.JFrame {
             TrucoFrame.displayImage(truco.usuario.cartas.get(2).getPath(), cartaJogador3);
         }
         
+        if(truco.usuario.getTentos()==10){
+            repaint();
+            int vai = JOptionPane.showConfirmDialog(null, "Deseja ir na mão de 10", "Truco", JOptionPane.YES_OPTION);
+            if(vai ==  JOptionPane.YES_OPTION){
+                truco.subirAposta(); 
+            }
+            else{
+                truco.bot.setTentos(truco.bot.getTentos()+truco.getValorNumericoPartida());
+                this.updateScore();
+                truco.preparaNovaRodada();
+            }
+        }
+        
         // DEBUG_ONLY
         //for (Carta c : truco.bot.cartas)
         //    System.out.println(c);
@@ -214,7 +227,6 @@ public class TrucoFrame extends javax.swing.JFrame {
                     truco.bot.setQuedas(truco.usuario.getQuedas() + 1);
                     truco.usuario.setTentos(0);
                 }
-
                 truco.bot.setTentos(pontuacao);
             }
             
@@ -495,7 +507,9 @@ public class TrucoFrame extends javax.swing.JFrame {
             aumentaAposta();
         }else{
             JOptionPane.showMessageDialog(null, "Bot não aceitou o truco");
+            truco.usuario.setTentos(truco.usuario.getTentos()+truco.getValorNumericoPartida());
             trucoBtn.setVisible(false);
+            truco.preparaNovaRodada();
         }      
     }//GEN-LAST:event_trucoBtnMouseClicked
 
