@@ -99,4 +99,17 @@ public class Bot extends Jogador {
         else
             return false;
     }
+    
+    public boolean respondeTruco(){
+        int somaValor=0;
+        for (int i = 0; i < 3; i++) {
+            if (!cartas.get(i).isUsada()){
+                somaValor = somaValor + cartas.get(i).getValor();
+            }
+        }
+        if (somaValor>25)
+            return true;
+        else
+            return false;
+    }
 }
