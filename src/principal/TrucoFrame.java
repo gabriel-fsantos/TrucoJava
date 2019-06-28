@@ -465,7 +465,7 @@ public class TrucoFrame extends javax.swing.JFrame {
      */
     
     //Método usado para aumentar a aposta pelo jogador ou pelo bot
-    private void aumentaAposta() {                                      
+    private void aumentaAposta(){                                      
         this.truco.subirAposta();
         showInfo(this.truco.getValorPartida() + "!", 3000);
         if(this.truco.getValorPartida() == ValoresPartida.DOZE)
@@ -491,7 +491,12 @@ public class TrucoFrame extends javax.swing.JFrame {
      */
     private void trucoBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_trucoBtnMouseClicked
         //método usado para aumentar a aposta pelo jogador ou pelo bot
-        aumentaAposta();
+        if(truco.bot.respondeTruco()){
+            aumentaAposta();
+        }else{
+            JOptionPane.showMessageDialog(null, "Bot não aceitou o truco");
+            trucoBtn.setVisible(false);
+        }      
     }//GEN-LAST:event_trucoBtnMouseClicked
 
     private void cartaJogador2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_cartaJogador2MouseClicked
