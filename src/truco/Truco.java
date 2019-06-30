@@ -19,9 +19,11 @@ public class Truco {
     private final Baralho baralho;
     private final TrucoFrame trucoFrame;
     
+    private int qtdRodadasEmpatadas;
+    private boolean vezDoUsuario;
+    private boolean vezDoUsuarioTravada;
     private boolean usuarioEProximoNaRodada;
     private boolean usuarioComecouNaPartidaAnterior;
-    private boolean vezDoUsuario;
     private ValoresPartida valorPartida;
     
     public boolean eMaoDaMaior;
@@ -69,6 +71,18 @@ public class Truco {
         return vezDoUsuario;
     }
     
+    public boolean vezDoJogadorTravada () {
+        return vezDoUsuarioTravada;
+    }
+    
+    public void travaVezDoJogador () {
+        vezDoUsuarioTravada = true;
+    }
+    
+    public void liberaVezDoJogador () {
+        vezDoUsuarioTravada = false;
+    }
+    
     public boolean usuarioEProximo () {
         return usuarioEProximoNaRodada;
     }
@@ -78,12 +92,11 @@ public class Truco {
         
         // Realiza a jogada do bot ou valida a rodada
         Carta.ComparacaoCartas resultadoRodada = jogar(usuario.cartas.get(cartaIdx), usuario.jogarDeCoberta);
-        if (resultadoRodada == Carta.ComparacaoCartas.IGUAIS)
-            eMaoDaMaior = true;
         
         String message = "";
         switch (resultadoRodada) {
             case IGUAIS:
+                eMaoDaMaior = true;
                 usuarioEProximoNaRodada = !usuarioEProximoNaRodada;
                 message = "Jogada cangada!";
                 break;
@@ -94,7 +107,7 @@ public class Truco {
                 
                 // Se for a primeira rodada, salva a informação de que o usuário
                 // venceu ela para ser usado como critério de desempate
-                if (!bot.fezAPrimeira() && !usuario.fezAPrimeira())
+                if (!bot.fezAPrimeira() && !usuario.fezAPrimeira() && !eMaoDaMaior)
                     usuario.setFezAPrimeira(true);
                 
                 break;
@@ -105,7 +118,7 @@ public class Truco {
                 
                 // Se for a primeira rodada, salva a informação de que o bot
                 // venceu ela para ser usado como critério de desempate
-                if (!bot.fezAPrimeira() && !usuario.fezAPrimeira())
+                if (!bot.fezAPrimeira() && !usuario.fezAPrimeira() && !eMaoDaMaior)
                     bot.setFezAPrimeira(true);
                 
                 break;
@@ -120,7 +133,7 @@ public class Truco {
         
         String vencedor = validaResultadoRodada(resultadoRodada);
         
-        // Se alguém venceu
+        // Se alguém venceu ou o jogo empatou
         if (vencedor.length() > 0)
             message = vencedor;
         
@@ -139,32 +152,41 @@ public class Truco {
             // Se o usuário venceu
             if (usuario.getPontuacaoPartidada() == 2 || (venceuPelaPrimeiraRodada && usuario.fezAPrimeira())) {
                 message = "Você venceu a partida!";
-
-                // Adiciona os tentos ao vencedor e caso ele tenha acumulado 12 ou mais tentos,
-                // adiciona uma queda pra ele e zera os tentos dos jogadores
-                int pontuacao = usuario.getTentos() + getValorNumericoPartida();
-                if (pontuacao >= 12) {
-                    pontuacao = 0;
-                    usuario.setQuedas(usuario.getQuedas() + 1);
-                    bot.setTentos(0);
-                }
-
-                usuario.setTentos(pontuacao);
+                adicionaTentosVencedor(usuario);
             } else {
                 // Senão, o bot venceu
                 message = "O Computador venceu a partida!";
-                
-                // Adiciona os tentos ao vencedor e caso ele tenha acumulado 12 ou mais tentos,
-                // adiciona uma queda pra ele e zera os tentos dos jogadores
-                int pontuacao = bot.getTentos() + getValorNumericoPartida();
-                if (pontuacao >= 12) {
-                    pontuacao = 0;
-                    bot.setQuedas(bot.getQuedas() + 1);
-                    usuario.setTentos(0);
-                }
-                
-                bot.setTentos(pontuacao);
+                adicionaTentosVencedor(bot);
             }
+        } else if (eMaoDaMaior) {
+            // Empate na primeira rodada e, possivelmente em outras
+            switch (qtdRodadasEmpatadas) {
+                case 1:
+                case 2:
+                    // Trata resultado das segunda e terceira rodadas após empate na(s) anterior(es)
+                    switch (resultadoRodada) {
+                        case IGUAIS:
+                            if (qtdRodadasEmpatadas == 2) {
+                                // Empate em todas as rodadas
+                                message = "Jogo empatado!";
+                                trucoFrame.showInfo(message, 3000);
+                            }
+                            break;
+                        case MAIOR:
+                            message = "Você venceu a partida!";
+                            adicionaTentosVencedor(usuario);
+                            break;
+                        case MENOR:
+                            message = "O Computador venceu a partida!";
+                            adicionaTentosVencedor(bot);
+                            break;
+                    }
+                    break;
+            }
+            
+            // Conta quantas rodadas foram empatadas
+            if (resultadoRodada == Carta.ComparacaoCartas.IGUAIS)
+                qtdRodadasEmpatadas++;
         }
         
         return message;
@@ -263,6 +285,8 @@ public class Truco {
      * Zera todas as variáveis de controle da rodada, embaralha e distribui cartas
      */
     public void preparaNovaPartida () {
+        qtdRodadasEmpatadas = 0;
+        vezDoUsuarioTravada = false;
         vezDoUsuario = !usuarioComecouNaPartidaAnterior;
         usuarioComecouNaPartidaAnterior = vezDoUsuario;
         
@@ -281,5 +305,20 @@ public class Truco {
     public void preparaNovaRodada () {
         bot.cartaJogada = null;
         vezDoUsuario = true;
+    }
+    
+    private void adicionaTentosVencedor (Jogador vencedor) {
+        // Adiciona os tentos ao vencedor e caso ele tenha acumulado 12 ou mais tentos,
+        // adiciona uma queda pra ele e zera os tentos dos jogadores
+        int pontuacao = vencedor.getTentos() + getValorNumericoPartida();
+        if (pontuacao >= 12) {
+            vencedor.setQuedas(vencedor.getQuedas() + 1);
+            
+            bot.setTentos(0);
+            usuario.setTentos(0);
+            return;
+        }
+
+        vencedor.setTentos(pontuacao);
     }
 }

@@ -60,6 +60,7 @@ public class TrucoFrame extends javax.swing.JFrame {
      * Inicializa um novo jogo
      */
     public void initializeGame () {
+        truco.travaVezDoJogador();
         hideLabel(cartaAtualCPU);
         hideLabel(cartaAtualJogador);
         updateScore();
@@ -154,6 +155,10 @@ public class TrucoFrame extends javax.swing.JFrame {
         }
         
         repaint();
+        
+        // DEBUG_ONLY
+        //for (Carta c : truco.bot.cartas)
+        //    System.out.println(c);
     }
     
     /**
@@ -180,16 +185,20 @@ public class TrucoFrame extends javax.swing.JFrame {
      * @param duration por quantos milissegundos a mensagem será exibida
      */
     public void showInfo (String text, int duration) {
+        truco.travaVezDoJogador();
         info.setText(text);
         repaint();
         
         ScheduledThreadPoolExecutor waitThread = new ScheduledThreadPoolExecutor(1);
-        waitThread.schedule(() -> { info.setText(""); }, duration, TimeUnit.MILLISECONDS);
+        waitThread.schedule(() -> {
+            info.setText("");
+            truco.liberaVezDoJogador();
+        }, duration, TimeUnit.MILLISECONDS);
     }
     
     public void jogaCarta (int n) {
         // Ignora se o usuário mandar jogar fora da vez dele ou cartas já usadas
-        if (truco.usuario.cartas.get(n).isUsada() || !truco.eVezDoJogador()) return;
+        if (truco.usuario.cartas.get(n).isUsada() || !truco.eVezDoJogador() || truco.vezDoJogadorTravada()) return;
         
         if (!truco.usuario.jogarDeCoberta)
             TrucoFrame.displayImage(truco.usuario.cartas.get(n).getPath(), cartaAtualJogador);
@@ -203,8 +212,11 @@ public class TrucoFrame extends javax.swing.JFrame {
         String message = truco.jogaUsuario(n);
         if (message.equals("ABORT")) {
             // Usuário correu
+            truco.travaVezDoJogador();
             ScheduledThreadPoolExecutor wait = new ScheduledThreadPoolExecutor(1);
             wait.schedule(() -> initializeGame(), 3000, TimeUnit.MILLISECONDS);
+            
+            repaint();
             return;
         }
         
@@ -218,7 +230,7 @@ public class TrucoFrame extends javax.swing.JFrame {
         repaint();
         
         // Verifica se alguém venceu
-        if (message.contains("venceu")) {
+        if (message.contains("venceu") || message.equals("Jogo empatado!")) {
             // Nova partida
             showInfo(message, 3000);
             ScheduledThreadPoolExecutor wait = new ScheduledThreadPoolExecutor(1);

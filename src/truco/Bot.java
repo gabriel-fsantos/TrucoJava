@@ -96,7 +96,7 @@ public class Bot extends Jogador {
     
     // Lógica de aposta do bot (2ª versão)
     public boolean pedeTruco (boolean respondendo) {
-        boolean mentir = random.nextDouble() < 0.22;
+        boolean mentir = random.nextDouble() < 0.13;
         boolean atenuacao = respondendo ? random.nextDouble() < 0.65 : random.nextDouble() < 0.85;
         boolean vitoriaQuaseGarantida = false;
         
