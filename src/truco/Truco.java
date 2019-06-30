@@ -10,22 +10,30 @@ package truco;
 
 import baralho.Baralho;
 import baralho.Carta;
+import javax.swing.JOptionPane;
+import principal.TrucoFrame;
 
 public class Truco {
     public enum ValoresPartida { REGULAR, TRUCO, SEIS, NOVE, DOZE }
     
+    private final Baralho baralho;
+    private final TrucoFrame trucoFrame;
+    
+    private boolean usuarioEProximoNaRodada;
     private boolean usuarioComecouNaPartidaAnterior;
     private boolean vezDoUsuario;
-    private Baralho baralho;
     private ValoresPartida valorPartida;
     
     public boolean eMaoDaMaior;
     public JogadorManual usuario;
     public Bot bot;
     
-    public Truco () {
+    public Truco (TrucoFrame trucoFrame) {
+        this.trucoFrame = trucoFrame;
+        
         usuarioComecouNaPartidaAnterior = false;
         valorPartida = ValoresPartida.REGULAR;
+        
         baralho = new Baralho();
         usuario = new JogadorManual("Jogador");
         bot = new Bot("CPU");
@@ -33,8 +41,26 @@ public class Truco {
     
     public Carta.ComparacaoCartas jogar (Carta jogadaUsuario, boolean coberta) {
         vezDoUsuario = false;
-        if (bot.cartaJogada == null)
-            bot.fazJogada(jogadaUsuario, coberta, eMaoDaMaior);
+        
+        // Se for a vez do bot, joga antes de comparar as cartas
+        if (bot.cartaJogada == null) {
+            String message = jogaBot(jogadaUsuario);
+
+            // Se o bot pediu truco, mostra resposta do usuário
+            if (message.length() > 0) {
+                trucoFrame.showInfo(message, 3000);
+
+                // Se o usuário tiver recusado o truco
+                if (message.contains("correu"))
+                    return Carta.ComparacaoCartas.ABORT;
+
+                // Mostra o botão de aumentar a aposta, se a aposta ainda puder ser ampliada
+                if (valorPartida != ValoresPartida.DOZE) {
+                    trucoFrame.trucoBtn.setVisible(true);
+                    trucoFrame.trucoBtn.setText(String.valueOf(getProximoValor()) + "!");
+                }
+            }
+        }
         
         return !coberta ? jogadaUsuario.comparaCartas(bot.cartaJogada) : Carta.ComparacaoCartas.MENOR;
     }
@@ -43,8 +69,153 @@ public class Truco {
         return vezDoUsuario;
     }
     
-    public void botJogou () {
+    public boolean usuarioEProximo () {
+        return usuarioEProximoNaRodada;
+    }
+    
+    public String jogaUsuario (int cartaIdx) {
+        usuario.cartas.get(cartaIdx).setUsada(true);
+        
+        // Realiza a jogada do bot ou valida a rodada
+        Carta.ComparacaoCartas resultadoRodada = jogar(usuario.cartas.get(cartaIdx), usuario.jogarDeCoberta);
+        if (resultadoRodada == Carta.ComparacaoCartas.IGUAIS)
+            eMaoDaMaior = true;
+        
+        String message = "";
+        switch (resultadoRodada) {
+            case IGUAIS:
+                usuarioEProximoNaRodada = !usuarioEProximoNaRodada;
+                message = "Jogada cangada!";
+                break;
+            case MAIOR:
+                usuarioEProximoNaRodada = true;
+                message = "Você fez a rodada!";
+                usuario.venceuRodada();
+                
+                // Se for a primeira rodada, salva a informação de que o usuário
+                // venceu ela para ser usado como critério de desempate
+                if (!bot.fezAPrimeira() && !usuario.fezAPrimeira())
+                    usuario.setFezAPrimeira(true);
+                
+                break;
+            case MENOR:
+                usuarioEProximoNaRodada = false;
+                message = "Você perdeu a rodada!";
+                bot.venceuRodada();
+                
+                // Se for a primeira rodada, salva a informação de que o bot
+                // venceu ela para ser usado como critério de desempate
+                if (!bot.fezAPrimeira() && !usuario.fezAPrimeira())
+                    bot.setFezAPrimeira(true);
+                
+                break;
+            case ABORT:
+                message = "ABORT";
+                break;
+        }
+        
+        // Caso o usuário correu de um eventual truco do bot, não continua a partida
+        if (message.equals("ABORT"))
+            return message;
+        
+        String vencedor = validaResultadoRodada(resultadoRodada);
+        
+        // Se alguém venceu
+        if (vencedor.length() > 0)
+            message = vencedor;
+        
+        return message;
+    }
+    
+    public String validaResultadoRodada (Carta.ComparacaoCartas resultadoRodada) {
+        String message = "";
+        
+        // Se o placar for diferente de 0 x 0 e o resultado da rodada foi empate,
+        // quem fez a primeira rodada venceu por desempate
+        boolean venceuPelaPrimeiraRodada = resultadoRodada == Carta.ComparacaoCartas.IGUAIS && (usuario.getPontuacaoPartidada() == 1 || bot.getPontuacaoPartidada() == 1);
+        
+        // Se alguém venceu
+        if (bot.getPontuacaoPartidada() == 2 || usuario.getPontuacaoPartidada() == 2 || venceuPelaPrimeiraRodada) {
+            // Se o usuário venceu
+            if (usuario.getPontuacaoPartidada() == 2 || (venceuPelaPrimeiraRodada && usuario.fezAPrimeira())) {
+                message = "Você venceu a partida!";
+
+                // Adiciona os tentos ao vencedor e caso ele tenha acumulado 12 ou mais tentos,
+                // adiciona uma queda pra ele e zera os tentos dos jogadores
+                int pontuacao = usuario.getTentos() + getValorNumericoPartida();
+                if (pontuacao >= 12) {
+                    pontuacao = 0;
+                    usuario.setQuedas(usuario.getQuedas() + 1);
+                    bot.setTentos(0);
+                }
+
+                usuario.setTentos(pontuacao);
+            } else {
+                // Senão, o bot venceu
+                message = "O Computador venceu a partida!";
+                
+                // Adiciona os tentos ao vencedor e caso ele tenha acumulado 12 ou mais tentos,
+                // adiciona uma queda pra ele e zera os tentos dos jogadores
+                int pontuacao = bot.getTentos() + getValorNumericoPartida();
+                if (pontuacao >= 12) {
+                    pontuacao = 0;
+                    bot.setQuedas(bot.getQuedas() + 1);
+                    usuario.setTentos(0);
+                }
+                
+                bot.setTentos(pontuacao);
+            }
+        }
+        
+        return message;
+    }
+    
+    /**
+     * Realiza a jogada do bot levando em consideração a carta jogada pelo usuário, caso haja.
+     * Também faz o bot pedir truco, se ele assim decidir
+     * @param jogadaUsuario carta jogada pelo usuario
+     * @return 
+     */
+    public String jogaBot (Carta jogadaUsuario) {
+        String message = "";
+        
+        if (usuario.getTentos() != 10 && bot.getTentos() != 10 && getValorPartida() != ValoresPartida.DOZE && bot.valorUltimaAportaFeita != this.valorPartida && bot.pedeTruco()) {
+            trucoFrame.repaint();
+            int resposta = JOptionPane.showConfirmDialog(null, "Computador pediu " + getProximoValor() + ". Deseja aceitar?", "Truco", JOptionPane.YES_OPTION);
+            if (resposta == JOptionPane.YES_OPTION) {
+                message = "Você aceitou!";
+                subirAposta();
+                
+                // Salva o último pedido de truco do bot para garantir que ele
+                // não irá pedir truco repetidamente
+                bot.valorUltimaAportaFeita = this.valorPartida;
+            } else {
+                message = "Você correu!";
+                bot.setTentos(bot.getTentos() + getValorNumericoPartida());
+                
+                // Para a função aqui, pois, desde que o bot pediu truco,
+                // só faz jogada se o usuário aceitar
+                return message;
+            }
+        }
+        
+        // Joga cartas aleatórias em caso de mão de 10
+        if (usuario.getTentos() == 10 && bot.getTentos() == 10)
+            bot.fazJogadaAleatoria();
+        else
+            bot.fazJogada(jogadaUsuario, usuario.jogarDeCoberta, eMaoDaMaior);
+        
         vezDoUsuario = true;
+        return message;
+    }
+    
+    /**
+     * Realiza a jogada do bot no início de uma rodada.
+     * Também faz o bot pedir truco, se ele assim decidir
+     * @return 
+     */
+    public String jogaBot () {
+        return jogaBot(null);
     }
     
     /**
@@ -70,12 +241,18 @@ public class Truco {
         }
     }
     
+    public ValoresPartida getProximoValor () {
+        if (this.valorPartida != ValoresPartida.DOZE)
+            return ValoresPartida.values()[this.valorPartida.ordinal() + 1];
+        
+        return ValoresPartida.DOZE;
+    }
+    
     /**
      * Aumenta a aposta da partida, ou seja, pede Truco, Seis, Nove ou Doze
      */
     public void subirAposta () {
-        if (this.valorPartida != ValoresPartida.DOZE)
-            this.valorPartida = ValoresPartida.values()[this.valorPartida.ordinal() + 1];
+        this.valorPartida = getProximoValor();
     }
     
     public void zeraAposta (){
@@ -91,11 +268,14 @@ public class Truco {
         
         usuario.preparaNovaPartida();
         bot.preparaNovaPartida();
+        
+        bot.valorUltimaAportaFeita = null;
         bot.cartaJogada = null;
         
         eMaoDaMaior = false;
         baralho.embaralhar();
         baralho.distribuirCartas(new Jogador[] { usuario, bot });
+        zeraAposta();
     }
     
     public void preparaNovaRodada () {

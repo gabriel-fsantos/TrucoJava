@@ -8,7 +8,6 @@
 
 package principal;
 
-import baralho.Carta;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -46,7 +45,7 @@ public class TrucoFrame extends javax.swing.JFrame {
      */
     public TrucoFrame() {
         initComponents();
-        truco = new Truco();
+        truco = new Truco(this);
         
         background = new JLabel();
         background.setLocation(0, 0);
@@ -63,59 +62,97 @@ public class TrucoFrame extends javax.swing.JFrame {
     public void initializeGame () {
         hideLabel(cartaAtualCPU);
         hideLabel(cartaAtualJogador);
-        
-        // Para esconder os botões utilizamos setVisible
-        aceitarBtn.setVisible(false);
-        correrBtn.setVisible(false);
-        
         updateScore();
         
         truco.usuario.jogarDeCoberta = false;
+        cobertaBtn.setVisible(true);
         cobertaBtn.setBackground(new Color(141, 27, 36));
         cobertaBtn.setBorder(new LineBorder(new Color(102, 0, 0)));
         
+        trucoBtn.setVisible(true);
+        trucoBtn.setText(String.valueOf(ValoresPartida.TRUCO) + "!");
+        
         truco.preparaNovaPartida();
-        if(truco.usuario.getTentos()==10 && truco.bot.getTentos()==10){
+        if (truco.usuario.getTentos() == 10 && truco.bot.getTentos() == 10) {
+            // Trata mão de ferro
             TrucoFrame.displayImage("Verso.png", cartaJogador1);
             TrucoFrame.displayImage("Verso.png", cartaJogador2);
             TrucoFrame.displayImage("Verso.png", cartaJogador3);
-        }
-        else{
+            trucoBtn.setVisible(false);
+            cobertaBtn.setVisible(false);
+        } else {
             TrucoFrame.displayImage(truco.usuario.cartas.get(0).getPath(), cartaJogador1);
             TrucoFrame.displayImage(truco.usuario.cartas.get(1).getPath(), cartaJogador2);
             TrucoFrame.displayImage(truco.usuario.cartas.get(2).getPath(), cartaJogador3);
+            
+            // Trata mão de 10
+            if (truco.usuario.getTentos() == 10) {
+                trucoBtn.setVisible(false);
+                cobertaBtn.setVisible(false);
+                repaint();
+
+                int vai = JOptionPane.showConfirmDialog(null, "Deseja ir na mão de 10?", "Truco", JOptionPane.YES_OPTION);
+                if (vai == JOptionPane.YES_OPTION) {
+                    truco.subirAposta();
+                } else {
+                    showInfo("Você correu!", 3000);
+                    truco.bot.setTentos(truco.bot.getTentos() + truco.getValorNumericoPartida());
+
+                    ScheduledThreadPoolExecutor wait = new ScheduledThreadPoolExecutor(1);
+                    wait.schedule(() -> initializeGame(), 3000, TimeUnit.MILLISECONDS);
+
+                    repaint();
+                    return;
+                }
+            } else if (truco.bot.getTentos() == 10) {
+                trucoBtn.setVisible(false);
+                cobertaBtn.setVisible(false);
+                repaint();
+
+                if (truco.bot.respondeTruco()) {
+                    truco.subirAposta(); 
+                } else {
+                    showInfo("O Bot correu!", 3000);
+                    truco.usuario.setTentos(truco.usuario.getTentos() + truco.getValorNumericoPartida());
+
+                    ScheduledThreadPoolExecutor wait = new ScheduledThreadPoolExecutor(1);
+                    wait.schedule(() -> initializeGame(), 3000, TimeUnit.MILLISECONDS);
+
+                    repaint();
+                    return;
+                }
+            }
         }
         
-        if(truco.usuario.getTentos()==10){
-            repaint();
-            int vai = JOptionPane.showConfirmDialog(null, "Deseja ir na mão de 10", "Truco", JOptionPane.YES_OPTION);
-            if(vai ==  JOptionPane.YES_OPTION){
-                truco.subirAposta(); 
-            }
-            else{
-                truco.bot.setTentos(truco.bot.getTentos()+truco.getValorNumericoPartida());
-                this.updateScore();
-                truco.preparaNovaRodada();
-            }
-        }
-        
-        // DEBUG_ONLY
-        //for (Carta c : truco.bot.cartas)
-        //    System.out.println(c);
-        
-        if (!truco.eVezDoJogador()) {
-            if(truco.usuario.getTentos()==10 && truco.bot.getTentos()==10){
-                truco.bot.fazJogadaAleatoria();
-            }
-            else{
-                truco.bot.fazJogada(null, false, truco.eMaoDaMaior);
-            }
-            TrucoFrame.displayImage(truco.bot.cartaJogada.getPath(), cartaAtualCPU);
-            truco.botJogou();
-        }
-        truco.zeraAposta();
-        trucoBtn.setVisible(true);
         showInfo("É a sua vez.", 2000);
+        
+        // Se não for vez do jogador, manda o bot jogar
+        if (!truco.eVezDoJogador()) {
+            String message = truco.jogaBot();
+            
+            // Se o bot pediu truco, mostra resposta do usuário
+            if (message.length() > 0) {
+                showInfo(message, 3000);
+                
+                // Se o usuário tiver recusado o truco
+                if (message.contains("correu")) {
+                    ScheduledThreadPoolExecutor wait = new ScheduledThreadPoolExecutor(1);
+                    wait.schedule(() -> initializeGame(), 3000, TimeUnit.MILLISECONDS);
+                    
+                    repaint();
+                    return;
+                } else {
+                    // Mostra o botão de aumentar a aposta, se a aposta ainda puder ser ampliada
+                    if (truco.getValorPartida() != ValoresPartida.DOZE) {
+                        trucoBtn.setVisible(true);
+                        trucoBtn.setText(String.valueOf(truco.getProximoValor()) + "!");
+                    }
+                }
+            }
+            
+            TrucoFrame.displayImage(truco.bot.cartaJogada.getPath(), cartaAtualCPU);
+        }
+        
         repaint();
     }
     
@@ -151,6 +188,7 @@ public class TrucoFrame extends javax.swing.JFrame {
     }
     
     public void jogaCarta (int n) {
+        // Ignora se o usuário mandar jogar fora da vez dele ou cartas já usadas
         if (truco.usuario.cartas.get(n).isUsada() || !truco.eVezDoJogador()) return;
         
         if (!truco.usuario.jogarDeCoberta)
@@ -158,13 +196,17 @@ public class TrucoFrame extends javax.swing.JFrame {
         else
             TrucoFrame.displayImage("Verso.png", cartaAtualJogador);
         
-        truco.usuario.cartas.get(n).setUsada(true);
+        // Esconde a carta que acabou de ser jogada
         this.hideLabel(n == 0 ? cartaJogador1 : (n == 1 ? cartaJogador2 : cartaJogador3));
         
-        // Realiza a jogada do bot ou valida a rodada
-        Carta.ComparacaoCartas resultadoRodada = truco.jogar(truco.usuario.cartas.get(n), truco.usuario.jogarDeCoberta);
-        if (resultadoRodada == Carta.ComparacaoCartas.IGUAIS)
-            truco.eMaoDaMaior = true;
+        // Informa jogada ao controle lógico
+        String message = truco.jogaUsuario(n);
+        if (message.equals("ABORT")) {
+            // Usuário correu
+            ScheduledThreadPoolExecutor wait = new ScheduledThreadPoolExecutor(1);
+            wait.schedule(() -> initializeGame(), 3000, TimeUnit.MILLISECONDS);
+            return;
+        }
         
         // Garante exibição da carta do computador
         TrucoFrame.displayImage(truco.bot.cartaJogada.getPath(), cartaAtualCPU);
@@ -174,82 +216,57 @@ public class TrucoFrame extends javax.swing.JFrame {
             cobertaBtnMouseClicked(null);
         
         repaint();
-        switch (resultadoRodada) {
-            case IGUAIS:
-                usuarioEProximo = !usuarioEProximo;
-                showInfo("Jogada cangada!", 2000);
-                break;
-            case MAIOR:
-                usuarioEProximo = true;
-                showInfo("Você fez a rodada!", 2000);
-                truco.usuario.venceuRodada();
-                if (!truco.bot.fezAPrimeira() && !truco.usuario.fezAPrimeira())
-                    truco.usuario.setFezAPrimeira(true);
-                
-                break;
-            case MENOR:
-                usuarioEProximo = false;
-                showInfo("Você perdeu a rodada!", 2000);
-                truco.bot.venceuRodada();
-                if (!truco.bot.fezAPrimeira() && !truco.usuario.fezAPrimeira())
-                    truco.bot.setFezAPrimeira(true);
-                
-                break;
-        }
         
-        preparaNovaRodada(resultadoRodada);
-    }
-    
-    private void preparaNovaRodada (Carta.ComparacaoCartas resultadoRodada) {
-        if(truco.bot.pedeTruco() && this.truco.getValorPartida() != ValoresPartida.DOZE){
-            int resposta = JOptionPane.showConfirmDialog(null, "Computador pediu TRUCO. Deseja aceitar?", "Truco", JOptionPane.YES_OPTION);
-            if (resposta == JOptionPane.YES_OPTION) 
-                aumentaAposta();
-        }
-        boolean venceuPelaPrimeiraRodada = resultadoRodada == Carta.ComparacaoCartas.IGUAIS && (truco.usuario.getPontuacaoPartidada() == 1 || truco.bot.getPontuacaoPartidada() == 1);
-        if (truco.bot.getPontuacaoPartidada() == 2 || truco.usuario.getPontuacaoPartidada() == 2 || venceuPelaPrimeiraRodada) {
-            if (truco.usuario.getPontuacaoPartidada() == 2 || (venceuPelaPrimeiraRodada && truco.usuario.fezAPrimeira())) {
-                showInfo("Você venceu a partida!", 3000);
-
-                int pontuacao = truco.usuario.getTentos() + truco.getValorNumericoPartida();
-                if (pontuacao >= 12) {
-                    pontuacao = 0;
-                    truco.usuario.setQuedas(truco.usuario.getQuedas() + 1);
-                    truco.bot.setTentos(0);
-                }
-
-                truco.usuario.setTentos(pontuacao);
-            } else {
-                showInfo("O Computador venceu a partida!", 3000);
-                int pontuacao = truco.bot.getTentos() + truco.getValorNumericoPartida();
-                if (pontuacao >= 12) {
-                    pontuacao = 0;
-                    truco.bot.setQuedas(truco.usuario.getQuedas() + 1);
-                    truco.usuario.setTentos(0);
-                }
-                truco.bot.setTentos(pontuacao);
-            }
-            
-            repaint();
+        // Verifica se alguém venceu
+        if (message.contains("venceu")) {
+            // Nova partida
+            showInfo(message, 3000);
             ScheduledThreadPoolExecutor wait = new ScheduledThreadPoolExecutor(1);
             wait.schedule(() -> initializeGame(), 3000, TimeUnit.MILLISECONDS);
-            trucoBtn.setText(String.valueOf(ValoresPartida.TRUCO)+"!");
-            
         } else {
-            ScheduledThreadPoolExecutor waitThread = new ScheduledThreadPoolExecutor(1);
-            waitThread.schedule(() -> {
-                hideLabel(cartaAtualCPU);
-                hideLabel(cartaAtualJogador);
+            // Nova rodada
+            showInfo(message, 2000);
+            preparaNovaRodada();
+        }
+    }
+    
+    private void preparaNovaRodada () {
+        ScheduledThreadPoolExecutor waitThread = new ScheduledThreadPoolExecutor(1);
+        waitThread.schedule(() -> {
+            hideLabel(cartaAtualCPU);
+            hideLabel(cartaAtualJogador);
 
-                truco.preparaNovaRodada();
-                if (!usuarioEProximo) {
-                    truco.bot.fazJogada(null, false, truco.eMaoDaMaior);
-                    TrucoFrame.displayImage(truco.bot.cartaJogada.getPath(), cartaAtualCPU);
+            truco.preparaNovaRodada();
+            
+            // Se não for vez do jogador, manda o bot jogar
+            if (!truco.usuarioEProximo()) {
+                String message = truco.jogaBot();
+
+                // Se o bot pediu truco, mostra resposta do usuário
+                if (message.length() > 0) {
+                    showInfo(message, 3000);
+
+                    // Se o usuário tiver recusado o truco
+                    if (message.contains("correu")) {
+                        ScheduledThreadPoolExecutor wait = new ScheduledThreadPoolExecutor(1);
+                        wait.schedule(() -> initializeGame(), 3000, TimeUnit.MILLISECONDS);
+                        
+                        repaint();
+                        return;
+                    } else {
+                        // Mostra o botão de aumentar a aposta, se a aposta ainda puder ser ampliada
+                        if (truco.getValorPartida() != ValoresPartida.DOZE) {
+                            trucoBtn.setVisible(true);
+                            trucoBtn.setText(String.valueOf(truco.getProximoValor()) + "!");
+                        }
+                    }
                 }
                 
-                repaint();
-            }, 3000, TimeUnit.MILLISECONDS);
-        }  
+                TrucoFrame.displayImage(truco.bot.cartaJogada.getPath(), cartaAtualCPU);
+            }
+
+            repaint();
+        }, 3000, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -270,16 +287,13 @@ public class TrucoFrame extends javax.swing.JFrame {
         placarJogador = new javax.swing.JLabel();
         placarCPU = new javax.swing.JLabel();
         trucoBtn = new javax.swing.JLabel();
-        correrBtn = new javax.swing.JLabel();
         cobertaBtn = new javax.swing.JLabel();
-        aceitarBtn = new javax.swing.JLabel();
         info = new javax.swing.JLabel();
         espacoLayoutEsquerdo = new javax.swing.JLabel();
         espacoLayoutDireito = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Truco");
-        setMaximumSize(new java.awt.Dimension(700, 530));
         setMinimumSize(new java.awt.Dimension(700, 530));
         setResizable(false);
 
@@ -343,15 +357,6 @@ public class TrucoFrame extends javax.swing.JFrame {
             }
         });
 
-        correrBtn.setBackground(new java.awt.Color(141, 27, 36));
-        correrBtn.setFont(new java.awt.Font("Roboto Lt", 0, 16)); // NOI18N
-        correrBtn.setForeground(new java.awt.Color(255, 255, 255));
-        correrBtn.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        correrBtn.setText("CORRER!");
-        correrBtn.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 0, 0)));
-        correrBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-        correrBtn.setOpaque(true);
-
         cobertaBtn.setBackground(new java.awt.Color(141, 27, 36));
         cobertaBtn.setFont(new java.awt.Font("Roboto Lt", 0, 16)); // NOI18N
         cobertaBtn.setForeground(new java.awt.Color(255, 255, 255));
@@ -365,15 +370,6 @@ public class TrucoFrame extends javax.swing.JFrame {
                 cobertaBtnMouseClicked(evt);
             }
         });
-
-        aceitarBtn.setBackground(new java.awt.Color(141, 27, 36));
-        aceitarBtn.setFont(new java.awt.Font("Roboto Lt", 0, 16)); // NOI18N
-        aceitarBtn.setForeground(new java.awt.Color(255, 255, 255));
-        aceitarBtn.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        aceitarBtn.setText("ACEITAR!");
-        aceitarBtn.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 0, 0)));
-        aceitarBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-        aceitarBtn.setOpaque(true);
 
         info.setFont(new java.awt.Font("Roboto Lt", 0, 42)); // NOI18N
         info.setForeground(new java.awt.Color(255, 255, 255));
@@ -410,8 +406,6 @@ public class TrucoFrame extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(trucoBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(correrBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(aceitarBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(espacoLayoutEsquerdo, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(64, 64, 64)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
@@ -456,10 +450,6 @@ public class TrucoFrame extends javax.swing.JFrame {
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(espacoLayoutEsquerdo, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(aceitarBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(correrBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(trucoBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(espacoLayoutDireito, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -470,20 +460,18 @@ public class TrucoFrame extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
-    /**
-     * Toggle para o usuário definir se quer jogar a carta de coberta ou não
-     * @param evt 
-     */
     
-    //Método usado para aumentar a aposta pelo jogador ou pelo bot
-    private void aumentaAposta(){                                      
-        this.truco.subirAposta();
-        showInfo(this.truco.getValorPartida() + "!", 3000);
-        if(this.truco.getValorPartida() == ValoresPartida.DOZE)
+    /**
+     * Método usado para aumentar a aposta pelo jogador ou pelo bot
+     */
+    private void aumentaAposta () {                                      
+        truco.subirAposta();
+        showInfo(truco.getValorPartida() + "!", 3000);
+        
+        if (truco.getValorPartida() == ValoresPartida.DOZE)
             trucoBtn.setVisible(false);
         else
-            trucoBtn.setText(String.valueOf(ValoresPartida.values()[this.truco.getValorPartida().ordinal() + 1])+"!");              
+            trucoBtn.setText(String.valueOf(truco.getProximoValor()) + "!");
     }   
     
     private void cobertaBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_cobertaBtnMouseClicked
@@ -502,14 +490,17 @@ public class TrucoFrame extends javax.swing.JFrame {
      * @param evt 
      */
     private void trucoBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_trucoBtnMouseClicked
-        //método usado para aumentar a aposta pelo jogador ou pelo bot
-        if(truco.bot.respondeTruco()){
+        if (truco.bot.respondeTruco()) {
             aumentaAposta();
-        }else{
-            JOptionPane.showMessageDialog(null, "Bot não aceitou o truco");
-            truco.usuario.setTentos(truco.usuario.getTentos()+truco.getValorNumericoPartida());
             trucoBtn.setVisible(false);
-            truco.preparaNovaRodada();
+            showInfo("Bot aceitou!", 2000);
+        } else {
+            showInfo("O Bot correu!", 3000);
+            truco.usuario.setTentos(truco.usuario.getTentos() + truco.getValorNumericoPartida());
+            
+            repaint();
+            ScheduledThreadPoolExecutor wait = new ScheduledThreadPoolExecutor(1);
+            wait.schedule(() -> initializeGame(), 3000, TimeUnit.MILLISECONDS);
         }      
     }//GEN-LAST:event_trucoBtnMouseClicked
 
@@ -560,25 +551,22 @@ public class TrucoFrame extends javax.swing.JFrame {
         });
     }
     
-    private boolean usuarioEProximo;
     private Truco truco;
     private javax.swing.JLabel background;
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel aceitarBtn;
-    private javax.swing.JLabel cartaAtualCPU;
+    public javax.swing.JLabel cartaAtualCPU;
     private javax.swing.JLabel cartaAtualJogador;
     private javax.swing.JLabel cartaJogador1;
     private javax.swing.JLabel cartaJogador2;
     private javax.swing.JLabel cartaJogador3;
     private javax.swing.JLabel cobertaBtn;
-    private javax.swing.JLabel correrBtn;
     private javax.swing.JLabel espacoLayoutDireito;
     private javax.swing.JLabel espacoLayoutEsquerdo;
     private javax.swing.JLabel info;
     private javax.swing.JLabel placarCPU;
     private javax.swing.JLabel placarJogador;
     private javax.swing.JLabel titulo;
-    private javax.swing.JLabel trucoBtn;
+    public javax.swing.JLabel trucoBtn;
     // End of variables declaration//GEN-END:variables
 }

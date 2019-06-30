@@ -10,7 +10,7 @@ package baralho;
 
 public class Carta {
     public enum Naipe { COPAS, OUROS, ESPADAS, PAUS };
-    public enum ComparacaoCartas { IGUAIS, MAIOR, MENOR };
+    public enum ComparacaoCartas { IGUAIS, MAIOR, MENOR, ABORT };
     
     /**
      * Traduz o naipe da carta para uma String
