@@ -201,7 +201,7 @@ public class Truco {
     public String jogaBot (Carta jogadaUsuario) {
         String message = "";
         
-        if (usuario.getTentos() != 10 && bot.getTentos() != 10 && getValorPartida() != ValoresPartida.DOZE && bot.valorUltimaAportaFeita != this.valorPartida && bot.pedeTruco()) {
+        if (usuario.getTentos() != 10 && bot.getTentos() != 10 && getValorPartida() != ValoresPartida.DOZE && bot.valorUltimaAportaFeita != this.valorPartida && bot.pedeTruco(jogadaUsuario)) {
             trucoFrame.repaint();
             int resposta = JOptionPane.showConfirmDialog(null, "Computador pediu " + getProximoValor() + ". Deseja aceitar?", "Truco", JOptionPane.YES_OPTION);
             if (resposta == JOptionPane.YES_OPTION) {

@@ -22,7 +22,8 @@ public class Bot extends Jogador {
         this.random = new SecureRandom();
     }
     
-    private SecureRandom random;
+    private final SecureRandom random;
+    private boolean trucouNestaPartida;
     
     public Carta cartaJogada;
     public Truco.ValoresPartida valorUltimaAportaFeita;
@@ -94,35 +95,125 @@ public class Bot extends Jogador {
         cartaJogada.setUsada(true);
     }
     
-    // Lógica de aposta do bot (2ª versão)
-    public boolean pedeTruco (boolean respondendo) {
+    /**
+     * Lógica de aposta do bot (3ª versão)
+     * @param respondendo informa se o bot está respondendo a um pedido de truco do usuário
+     * @param jogadaUsuario carta que o usuário jogou, caso ele tenha começado a rodada
+     * @return 
+     */
+    public boolean pedeTruco (boolean respondendo, Carta jogadaUsuario) {
         boolean mentir = random.nextDouble() < 0.13;
-        boolean atenuacao = respondendo ? random.nextDouble() < 0.65 : random.nextDouble() < 0.85;
-        boolean vitoriaQuaseGarantida = false;
+        boolean atenuacao = random.nextDouble() < 0.85;
+        boolean vitoriaGarantida = false;
+        boolean posicaoFavoravel = false;
         
-        // ------------------------------------------------------------
-        // Início da área que deve ser alterada
+        // Se trucou nesta partida, insiste no truco
+        if (trucouNestaPartida)
+            atenuacao = true;
         
-        int somaValor = 0;
-        for (int i = 0; i < 3; i++) {
-            if (!cartas.get(i).isUsada()) {
-                somaValor = somaValor + cartas.get(i).getValor();
-            }
+        int dois = 0;
+        int tres = 0;
+        int manilhas = 0;
+        int reiOuAs = 0;
+        boolean seteCopas = false;
+        boolean zap = false;
+
+        // Identifica cartas de interesse dentre as 3 distribuídas e a
+        // que o bot eventualmente jogou nesta rodada
+        for (int i = 0; i < 4; i++) {
+            Carta carta = i < 3 ? cartas.get(i) : cartaJogada;
+            
+            // OBS: cartaJogada já foi usada, mas não pode ser ignorada
+            // na tomada de decisão, pois pertence a esta jogada
+            if (carta == null || (carta.isUsada() && i < 3)) continue;
+
+            if (carta.getValor() >= 14)
+                manilhas++;
+            else if (carta.getValor() == 13)
+                tres++;
+            else if (carta.getValor() == 12)
+                dois++;
+            else if (carta.getValor() >= 10)
+                reiOuAs++;
+            
+            if (carta.getValor() == 16)
+                seteCopas = true;
+            else if (carta.getValor() == 17)
+                zap = true;
         }
         
-        boolean verdade = somaValor > 25;
+        // Se tem carta atual, ignora ela na contagem de rodadas,
+        // pois ela é uma rodada em andamento
+        int rodada = cartaJogada == null ? 1 : 0;
         
-        // Fim da área que deve ser alterada
-        // ------------------------------------------------------------
+        // Identifica a rodada atual
+        for (int i = 0; i < 3; i++) {
+            if (cartas.get(i).isUsada())
+                rodada++;
+        }
         
-        return vitoriaQuaseGarantida || (mentir && !respondendo) || (verdade && atenuacao);
+        switch (rodada) {
+            case 1:
+                // Lógica da primeira rodada
+                vitoriaGarantida = manilhas == 3;
+                posicaoFavoravel = manilhas >= 2 || (manilhas == 1 && (dois + tres >= 1 || trucouNestaPartida)) || (tres >= 2 && reiOuAs > 0) || (tres + dois >= 2 && trucouNestaPartida);
+                break;
+            case 2:
+                // Lógica da segunda rodada
+                boolean cartaMaiorOuIgual = false;
+                if (jogadaUsuario != null) {
+                    for (int i = 0; i < 4 && !cartaMaiorOuIgual; i++) {
+                        Carta carta = i < 3 ? cartas.get(i) : cartaJogada;
+                        if (carta != null && (!carta.isUsada() || i == 3))
+                            cartaMaiorOuIgual = carta.comparaCartas(jogadaUsuario) != ComparacaoCartas.MENOR;
+                    }
+                }
+                
+                // Garantia de 90% de vitória aqui, mas vale a pena trucar
+                vitoriaGarantida = this.fezAPrimeira() && (cartaMaiorOuIgual || zap || seteCopas || manilhas > 1);
+                posicaoFavoravel = (this.fezAPrimeira() && manilhas + tres >= 1) || manilhas + tres + dois == 2;
+                break;
+            case 3:
+                // Lógica da última rodada
+                for (int i = 0; i < 4; i++) {
+                    Carta carta = i < 3 ? cartas.get(i) : cartaJogada;
+                    if (carta != null && (!carta.isUsada() || i == 3)) {
+                        boolean cartaAlta = carta.getValor() >= 12;
+                        boolean cartaMaior = jogadaUsuario != null && carta.comparaCartas(jogadaUsuario) == ComparacaoCartas.MAIOR;
+                        boolean ganhaPelaPrimeira = jogadaUsuario != null && carta.comparaCartas(jogadaUsuario) == ComparacaoCartas.IGUAIS && this.fezAPrimeira();
+                        
+                        if (cartaMaior || ganhaPelaPrimeira) {
+                            vitoriaGarantida = true;
+                            break;
+                        } else if (cartaAlta) {
+                            posicaoFavoravel = true;
+                            break;
+                        }
+                    }
+                }
+                break;
+        }
+        
+        //System.out.println(vitoriaGarantida + " || (" + mentir + " && !" + respondendo + ") || (" + posicaoFavoravel + " && " + atenuacao + ")");
+        boolean resposta = vitoriaGarantida || (mentir && !respondendo) || (posicaoFavoravel && atenuacao);
+        
+        if (resposta && !respondendo)
+            trucouNestaPartida = true;
+        
+        return resposta;
     }
     
-    public boolean pedeTruco () {
-        return pedeTruco(false);
+    public boolean pedeTruco (Carta jogadaUsuario) {
+        return pedeTruco(false, jogadaUsuario);
     }
     
     public boolean respondeTruco () {
-        return pedeTruco(true);
+        return pedeTruco(true, null);
+    }
+    
+    @Override
+    public void preparaNovaPartida () {
+        super.preparaNovaPartida();
+        trucouNestaPartida = false;
     }
 }
