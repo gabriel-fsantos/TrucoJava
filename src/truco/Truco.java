@@ -41,6 +41,12 @@ public class Truco {
         bot = new Bot("CPU");
     }
     
+    /**
+     * Realiza a escolha da carta do bot e a joga
+     * @param jogadaUsuario carta jogada pelo usuário
+     * @param coberta informa se a carta do usuário foi jogada de coberta
+     * @return 
+     */
     public Carta.ComparacaoCartas jogar (Carta jogadaUsuario, boolean coberta) {
         vezDoUsuario = false;
         
@@ -67,26 +73,49 @@ public class Truco {
         return !coberta ? jogadaUsuario.comparaCartas(bot.cartaJogada) : Carta.ComparacaoCartas.MENOR;
     }
     
+    /**
+     * Informa se é a vez do usuário
+     * @return 
+     */
     public boolean eVezDoJogador () {
         return vezDoUsuario;
     }
     
+    /**
+     * Informa se o usuário está liberado para jogar
+     * @return 
+     */
     public boolean vezDoJogadorTravada () {
         return vezDoUsuarioTravada;
     }
     
+    /**
+     * Impede que o usuário realize sua jogada clicando na carta desejada
+     */
     public void travaVezDoJogador () {
         vezDoUsuarioTravada = true;
     }
     
+    /**
+     * Permite ao usuário realizar sua jogada clicando na carta desejada
+     */
     public void liberaVezDoJogador () {
         vezDoUsuarioTravada = false;
     }
     
+    /**
+     * Informa se o usuário é o próximo a jogar
+     * @return 
+     */
     public boolean usuarioEProximo () {
         return usuarioEProximoNaRodada;
     }
     
+    /**
+     * Executa a lógica de jogada do usuário e do bot
+     * @param cartaIdx índice da carta jogada pelo usuário no seu vetor de cartas
+     * @return mensagem de resultado da rodada/partida
+     */
     public String jogaUsuario (int cartaIdx) {
         usuario.cartas.get(cartaIdx).setUsada(true);
         
@@ -140,6 +169,12 @@ public class Truco {
         return message;
     }
     
+    /**
+     * Realiza a validação do resultado da rodada para determinar se a partida terminou
+     * e adicionar os tentos corretamente ao vencedor
+     * @param resultadoRodada resultado da comparação entre a carta do jogador e a do bot
+     * @return mensagem de resultado da rodada/partida
+     */
     public String validaResultadoRodada (Carta.ComparacaoCartas resultadoRodada) {
         String message = "";
         
@@ -248,6 +283,10 @@ public class Truco {
         return this.valorPartida;
     }
     
+    /**
+     * Obtém a quantidade de tentos que a partida está valendo
+     * @return quantidade de tentos da aposta atual
+     */
     public int getValorNumericoPartida () {
         switch (this.valorPartida) {
             case DOZE:
@@ -263,6 +302,10 @@ public class Truco {
         }
     }
     
+    /**
+     * Obtém o valor que a partida tera se alguém pedir truco, seis, nove ou doze
+     * @return próximo valor da partida
+     */
     public ValoresPartida getProximoValor () {
         if (this.valorPartida != ValoresPartida.DOZE)
             return ValoresPartida.values()[this.valorPartida.ordinal() + 1];
@@ -277,6 +320,9 @@ public class Truco {
         this.valorPartida = getProximoValor();
     }
     
+    /**
+     * Configura o valor da partida para o valor regular de dois tentos
+     */
     public void zeraAposta (){
         this.valorPartida = ValoresPartida.REGULAR;
     }
@@ -302,14 +348,20 @@ public class Truco {
         zeraAposta();
     }
     
+    /**
+     * Zera as variáveis de controle da rodada
+     */
     public void preparaNovaRodada () {
         bot.cartaJogada = null;
         vezDoUsuario = true;
     }
     
-    private void adicionaTentosVencedor (Jogador vencedor) {
-        // Adiciona os tentos ao vencedor e caso ele tenha acumulado 12 ou mais tentos,
-        // adiciona uma queda pra ele e zera os tentos dos jogadores
+    /**
+     * Adiciona os tentos ao vencedor e caso ele tenha acumulado 12 ou mais tentos,
+     * adiciona uma queda pra ele e zera os tentos dos jogadores
+     * @param vencedor Jogador que venceu a partida
+     */
+    public void adicionaTentosVencedor (Jogador vencedor) {
         int pontuacao = vencedor.getTentos() + getValorNumericoPartida();
         if (pontuacao >= 12) {
             vencedor.setQuedas(vencedor.getQuedas() + 1);

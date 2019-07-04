@@ -42,7 +42,7 @@ public class Baralho {
     
     /**
      * Distribui cartas para os jogadores
-     * @param jogadores 
+     * @param jogadores jogadores que irão receber as cartas
      */
     public void distribuirCartas (Jogador[] jogadores) {
         for (Jogador j : jogadores) {

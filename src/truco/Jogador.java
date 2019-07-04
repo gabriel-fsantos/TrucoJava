@@ -83,10 +83,18 @@ public abstract class Jogador {
         this.pontuacaoPartida++;
     }
 
+    /**
+     * Informa se o usuário venceu a primeira rodada
+     * @return se o usuário fez a primeira
+     */
     public boolean fezAPrimeira () {
         return fezAPrimeira;
     }
 
+    /**
+     * Defini se o usuário venceu a primeira rodada
+     * @param fezAPrimeira resultado da primeira rodada
+     */
     public void setFezAPrimeira (boolean fezAPrimeira) {
         this.fezAPrimeira = fezAPrimeira;
     }

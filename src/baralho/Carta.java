@@ -134,6 +134,10 @@ public class Carta {
         return stringifyNaipe(this.naipe).toUpperCase() + "\\" + this.toString() + ".png";
     }
     
+    /**
+     * Traduz a carta em seu nome completo
+     * @return 
+     */
     @Override
     public String toString () {
         return this.getNome() + " de " + stringifyNaipe(this.naipe);

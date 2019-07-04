@@ -28,6 +28,9 @@ public class Bot extends Jogador {
     public Carta cartaJogada;
     public Truco.ValoresPartida valorUltimaAportaFeita;
 
+    /**
+     * Faz o bot jogar de forma aleatória na mão de ferro
+     */
     public void fazJogadaAleatoria () {
         Random gerador = new Random();
         Carta carta = null;
@@ -41,7 +44,12 @@ public class Bot extends Jogador {
         cartaJogada.setUsada(true);
     }
     
-    // Lógica de escolha da carta do bot (2ª versão)
+    /**
+     * Lógica de escolha da carta do bot (2ª versão)
+     * @param jogadaOposta carta jogada pelo usuário, se ele tiver começado a rodada
+     * @param coberta informa se a carta do usuário foi jogada de coberta
+     * @param maoDaMaior informa se é obrigatório jogar a maior carta
+     */
     public void fazJogada (Carta jogadaOposta, boolean coberta, boolean maoDaMaior) {
         Carta carta = null;
         
@@ -99,7 +107,7 @@ public class Bot extends Jogador {
      * Lógica de aposta do bot (3ª versão)
      * @param respondendo informa se o bot está respondendo a um pedido de truco do usuário
      * @param jogadaUsuario carta que o usuário jogou, caso ele tenha começado a rodada
-     * @return 
+     * @return
      */
     public boolean pedeTruco (boolean respondendo, Carta jogadaUsuario) {
         boolean mentir = random.nextDouble() < 0.13;
@@ -203,14 +211,26 @@ public class Bot extends Jogador {
         return resposta;
     }
     
+    /**
+     * Executa a lógica de aposta do bot
+     * @param jogadaUsuario carta que o usuário jogou, caso ele tenha começado a rodada
+     * @return 
+     */
     public boolean pedeTruco (Carta jogadaUsuario) {
         return pedeTruco(false, jogadaUsuario);
     }
     
+    /**
+     * Analisa se o bot vai ou não aceitar o truco do usuário
+     * @return 
+     */
     public boolean respondeTruco () {
         return pedeTruco(true, null);
     }
     
+    /**
+     * Zera variáveis de controle para a nova partida
+     */
     @Override
     public void preparaNovaPartida () {
         super.preparaNovaPartida();

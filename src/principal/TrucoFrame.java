@@ -43,7 +43,7 @@ public class TrucoFrame extends javax.swing.JFrame {
     /**
      * Creates new form TrucoFrame
      */
-    public TrucoFrame() {
+    public TrucoFrame () {
         initComponents();
         truco = new Truco(this);
         
@@ -72,6 +72,7 @@ public class TrucoFrame extends javax.swing.JFrame {
         
         trucoBtn.setVisible(true);
         trucoBtn.setText(String.valueOf(ValoresPartida.TRUCO) + "!");
+        trucoBtnClicked = false;
         
         truco.preparaNovaPartida();
         if (truco.usuario.getTentos() == 10 && truco.bot.getTentos() == 10) {
@@ -97,7 +98,7 @@ public class TrucoFrame extends javax.swing.JFrame {
                     truco.subirAposta();
                 } else {
                     showInfo("Você correu!", 3000);
-                    truco.bot.setTentos(truco.bot.getTentos() + truco.getValorNumericoPartida());
+                    truco.adicionaTentosVencedor(truco.bot);
 
                     ScheduledThreadPoolExecutor wait = new ScheduledThreadPoolExecutor(1);
                     wait.schedule(() -> initializeGame(), 3000, TimeUnit.MILLISECONDS);
@@ -114,7 +115,7 @@ public class TrucoFrame extends javax.swing.JFrame {
                     truco.subirAposta(); 
                 } else {
                     showInfo("O Bot correu!", 3000);
-                    truco.usuario.setTentos(truco.usuario.getTentos() + truco.getValorNumericoPartida());
+                    truco.adicionaTentosVencedor(truco.usuario);
 
                     ScheduledThreadPoolExecutor wait = new ScheduledThreadPoolExecutor(1);
                     wait.schedule(() -> initializeGame(), 3000, TimeUnit.MILLISECONDS);
@@ -196,6 +197,10 @@ public class TrucoFrame extends javax.swing.JFrame {
         }, duration, TimeUnit.MILLISECONDS);
     }
     
+    /**
+     * Realiza visualmente a jogada do usuário
+     * @param n índice da carta jogada pelo usuário no seu vetor de cartas
+     */
     public void jogaCarta (int n) {
         // Ignora se o usuário mandar jogar fora da vez dele ou cartas já usadas
         if (truco.usuario.cartas.get(n).isUsada() || !truco.eVezDoJogador() || truco.vezDoJogadorTravada()) return;
@@ -242,6 +247,9 @@ public class TrucoFrame extends javax.swing.JFrame {
         }
     }
     
+    /**
+     * Prepara a nova rodada e, se for a vez do bot começar, manda ele jogar
+     */
     private void preparaNovaRodada () {
         ScheduledThreadPoolExecutor waitThread = new ScheduledThreadPoolExecutor(1);
         waitThread.schedule(() -> {
@@ -486,6 +494,10 @@ public class TrucoFrame extends javax.swing.JFrame {
             trucoBtn.setText(String.valueOf(truco.getProximoValor()) + "!");
     }   
     
+    /**
+     * Ativa e desativa a opção de jogar a carta de coberta
+     * @param evt 
+     */
     private void cobertaBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_cobertaBtnMouseClicked
         truco.usuario.jogarDeCoberta = !truco.usuario.jogarDeCoberta;
         if (!truco.usuario.jogarDeCoberta) {
@@ -502,13 +514,17 @@ public class TrucoFrame extends javax.swing.JFrame {
      * @param evt 
      */
     private void trucoBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_trucoBtnMouseClicked
+        if (trucoBtnClicked) return;
+        
+        trucoBtnClicked = true;
         if (truco.bot.respondeTruco()) {
             aumentaAposta();
             trucoBtn.setVisible(false);
             showInfo("Bot aceitou!", 2000);
+            trucoBtnClicked = false;
         } else {
             showInfo("O Bot correu!", 3000);
-            truco.usuario.setTentos(truco.usuario.getTentos() + truco.getValorNumericoPartida());
+            truco.adicionaTentosVencedor(truco.usuario);
             
             repaint();
             ScheduledThreadPoolExecutor wait = new ScheduledThreadPoolExecutor(1);
@@ -563,6 +579,7 @@ public class TrucoFrame extends javax.swing.JFrame {
         });
     }
     
+    private boolean trucoBtnClicked;
     private Truco truco;
     private javax.swing.JLabel background;
     
