@@ -20,3 +20,4 @@ Possibilitar que o usuario joge truco com um "bot", seguindo todas as regras e f
    [l2]: <https://github.com/Lucasrsv1>
    [l3]: <https://github.com/rebgaia>
  
+Feito em Java, usando o NetBeans.
