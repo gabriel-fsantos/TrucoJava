@@ -3,7 +3,7 @@
  * Class:       Baralho
  * Descrição:   Representa um baralho de cartas.
  * Matéria:     Programação de Computadores II
- * Autores:     Gabriel, Lucas Rassilan, Rebeca Gaia
+ * Autores:     Gabriel Ferreira, Lucas Rassilan, Rebeca Gaia
  */
 
 package baralho;

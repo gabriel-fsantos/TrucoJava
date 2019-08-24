@@ -3,7 +3,7 @@
  * Class:       TrucoFrame
  * Descrição:   Tela do jogo com todos os elementos visuais e interação com o usuário.
  * Matéria:     Programação de Computadores II
- * Autores:     Gabriel, Lucas Rassilan, Rebeca Gaia
+ * Autores:     Gabriel Ferreira, Lucas Rassilan, Rebeca Gaia
  */
 
 package principal;

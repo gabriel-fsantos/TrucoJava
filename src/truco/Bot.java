@@ -3,7 +3,7 @@
  * Class:       Bot
  * Descrição:   Representa o jogador computador.
  * Matéria:     Programação de Computadores II
- * Autores:     Gabriel, Lucas Rassilan, Rebeca Gaia
+ * Autores:     Gabriel Ferreira, Lucas Rassilan, Rebeca Gaia
  */
 
 package truco;
